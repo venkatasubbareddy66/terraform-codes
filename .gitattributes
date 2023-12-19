@@ -1,0 +1,1 @@
+*.terraform-codes filter=lfs diff=lfs merge=lfs -text

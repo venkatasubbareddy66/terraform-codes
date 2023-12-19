@@ -1,0 +1,4924 @@
+1  Exploring Toolsets
+
+There are various types of tools that can allow you to deploy infrastructure as code :
+
+- Terraform
+- CloudFormation
+- Heat
+- Ansible
+- SaltStack
+- Chef, Puppet and others
+
+
+2                      Configuration Management vs Infrastructure Orchestration
+
+
+Ansible, Chef, Puppet are configuration management tools which means that they are primarily designed to install and manage software on existing servers.
+
+
+Terraform, CloudFormation are the infrastructure orchestration tools which basically means they can provision the servers and infrastructure by themselves
+
+
+Configuration Management tools can do some degree of infrastructure provisioning, but the focus here is that some tools are going to be better fit for certain type of tasks
+
+
+3 =========================================================practicals ===============
+
+
+4 create seperate user , iam > new user> security credn >  attach policies > admin access > download .csv file 
+
+
+5 with this credn u have to login into aws key and create services u want 
+
+
+6  =============launc 1st V.M (ec2) through  terraform=======================================================
+
+there are some concerns to keep in mind for ec2 in aws 
+
+a availale regions 
+
+b V.M configuratin (storage, memory,cpu,o.s.....) it has own set of configuratins
+
+7  know the process fist how to create ec2 in aws console for practice 
+
+8 open folder through vs code of ur terraform and give create file with the xtension of .tf
+
+9  go to terraform registry > browse supports > aws > documentation >Authentication and Configuration (copy code of login code ) in vs code file and add resouce of basic instace ceation process 
+
+eg: 
+
+  provider "aws" {
+     region     = "us-west-2"
+     access_key = "my-access-key"
+     secret_key = "my-secret-key"
+}
+
+
+resource "aws_instance" "terraform" {
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+}
+
+10 now go to terminal in vs code or cmd in local machine 
+
+11 open cmd promt andn make sure ur in terraform folder 
+
+
+12  type "terrform init" cmd in cmd ,it will go headand download the appropriate plugins associated with the provider thaat you have defined , it will take 2-3 min to install all the necessary plugins of ur provider 
+
+13 now nxt cmd is "terraform plan" , it will show you what it will create or destroy in the environment based on the code that u have specified in the terraform file .
+
+14  now "terraform aply" once u type this this will create the resource which u have given iin the terraform file 
+
+
+15  go n check whethher it is created or not -------------- getting
+
+
+16  now if u want to modify the resource configurations like add name (it creatd without name") so add tags 
+
+eg : 
+
+provider "aws" {
+  region     = "ap-south-1"
+  access_key = "AKIAUK2QS6DO2QD7O4E"
+  secret_key = "UIPgGMmXgCL+uCSuGNL09yGIak9IFd6ibUPntJo"
+}
+
+resource "aws_instance" "terraform" {
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+
+    tags = {
+        Name = "terrec2"
+    }
+}
+
+
+17  run terraform plan once more 
+
+
+18  it is showing changes 1 to add n do apply n yes 
+
+19 now check it will come with name --------------getting 
+
+
+==================================================================================suporters and providers ===========================================================================
+
+
+20 basics of providers 
+
+21  it suports multiple supports 
+
+          like aws , gcp, azure, alibaba cloud ..............,now 3k+ providers....
+
+
+22  u can use appropriate provider according to user use case
+
+A. associated with the provider plugins : 
+
+----- a provider is a plugin that lets teraorm manage an external API.
+
+when u run terraform init , it will download all the required plugins and stored in the .terraform directory
+
+go n check ur folder for .terraform directory 
+
+B . Resource :it describes one or mre infrastructure objects associaed wit the provider 
+
+eg:  resource aws_instance
+     rsource aws_alb
+
+-- a resource block declars a resource of a given type("aw_instance") with a given local name ("terraform") -- in the above code examle
+
+-- resource type and loacl name together serve as an identifier for a given resource and so must be unique.
+
+C u can use only resource wth a specific provider 
+
+
+===========provide Tiers
+
+23          there are 3 primary type of providers in Terraform 
+
+ A. offical :      owned and maintained by HashiCorp.
+
+ B. Partner :      owned and maintained by technology company that maintains direct partnership with Hashicorp
+
+ C. Community :    owned and maintained by individual contributiors
+
+
+24 ===== provider Namespace 
+
+Namespace are used to help users identify te organization or publishers responsible for the integration
+
+
+official --------------    hashicorp
+
+partner ----------3rd party organization , eg : mongodb
+
+community ---------- maintainer's individual or organization account , e.g devialVir/gsuite
+
+
+25  IMP :  terraform requires explict source info for any providers that are not HashiCorp-maintaine, using a new syntax in the required_providers nested block inside the terraform configuration block.
+
+eg:  provider terraform {
+           
+           required_providers {
+                digitalocean = { 
+                  source = "..............."
+
+26 =========create github repo using Terraform====
+
+go to erraform registry n search for github > documentation >copy code 
+
+terraform {
+  required_providers {
+    github = {
+      source  = "integrations/github"
+      version = "~> 5.0"
+    }
+  }
+}
+
+# Configure the GitHub Provider
+provider "github" {
+             tken = "..........."
+      }
+
+27 now authentication, generate token in github and add in above code ,goto github > settings > dev settings> generate fined grined tokens> give name of token and perissions n create token and copy , paste in code snippet
+
+28  go to cmd prompt and run init cmd ,onceu done sucessfully 
+
+
+29  now in the regsitry >github > documentatation > resources>github_repository
+
+copy example code n paste invs code n save it 
+
+resource "github_repository" "example" {
+  name        = "example"
+  description = "My awesome codebase"
+
+  visibility = "public"
+
+}
+
+
+30 in cmd terroform plan 
+
+31 aply n check in github for repository ----- getting o/p 
+
+32  =====terraform Destroy 
+
+
+33 apporach 1 -- destroy All : it will allows to destroy all the rsource that are created within the folder 
+
+here as of now we have 2 files (ec2.f, github.tf)
+
+34 Apporach-2 -- terraform destroy with -target flag allows us to destroy specific resource.
+
+----the -target option is a combination of : Resource Type + Local Resource Name 
+
+             "github_repository"--Resource Type   "example"--Local Resource Name 
+
+35 try to destroy specific resource with the target 
+
+   eg:  terraform destroy -target aws_instance.terraform
+
+36  it took 2 minutes to destroy n check in console it is destroyed or not ----- getting 
+
+37  although u have code for resource after deleting that resource , the terraform will think that u wnt to create that resourceonce u type plan in terminal 
+
+38  so, to avoid this u should cmnt this or remove this code from ur file , nnow check plan it wont create ec2 instance after cmnt the code 
+
+39  now cmnt github resource , it will destroy this github repo , coz terraform think that u dont wnt this code so it will destroy , ths is also anothr way to destroy 
+
+
+
+40  ==============Terraform state Files
+
+             Terraform must store state about your managed infrastructure and configuration. This state is used by Terraform to map real world resources to your configuration, keep track of metadata, and to improve performance for large infrastructures. This state is stored by default in a local file named "terraform.tfstate"
+
+41  from the previous examples we have destroyed ec22 instace but we did not destroy git hub repo , once u type terraform plan it will try to add ec2 instance , here how does terraform knows that github is already there , and ready to generate instance ?
+
+42  the answer is terraform State Files , 
+
+         -it stores the state of the infrastructure that is being ceated from the TF files
+         -this state allows terraform to map real world resource to your existing configuration.
+
+
+43  this state file contains the information associated with resources that are currently life 
+
+==============Desired and current State =============
+
+44  Desired state :  terraform's primary function is to create , modify and destroy infrastructure resource too match the desired state described in a Terraform configuration.
+
+45  Current state : current state is the actual state of a resource that is currently deployed 
+
+eg :  create instance with t2.micro 
+
+  
+    provider "aws" {
+     region     = "us-west-2"
+     access_key = "my-access-key"
+     secret_key = "my-secret-key"
+}
+
+
+resource "aws_instance" "terraform" {
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+}
+
+
+this is the desired state 
+
+
+46 now go n stop the instance and change t2.micro to t2.medium ,now instance is running with t2.medium configuration .
+
+47  IMP : terraform tries to ensure thta the deployed infrastructure is based on the desired state 
+
+
+- if there is difference b/w the two  tf plans presents a description of the change necessary to achieve desired state 
+
+
+48      now do tf plan once again , observe the result 
+
+          
+  # aws_instance.terraform will be updated in-place
+  ~ resource "aws_instance" "terraform" {
+        id                                   = "i-05401949256de9d0d"
+      ~ instance_type                        = "t2.medium" -> "t2.micro"
+        tags                                 = {
+            "Name" = "terrec2"
+        }
+
+here tf will find the change n it will show you tat it is not matching with desired state so, thi will change to desired state once u do tf apply 
+
+
+49   now tf apply n it will change to t2.micro 
+
+50  now try to run tf plan it will show u like thhis once u match with desired and current state .
+
+aws_instance.terraform: Refreshing state... [id=i-05401949256de9d0d]
+github_repository.example: Refreshing state... [id=terrgithub]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no differences, so no changes are
+needed.
+
+
+=============challenges wit the current state on compute values===
+
+51  here once u chnage the s.G of an instance , then once u do tf refresh , then tf plan when u check in tf statefile ,it will show u ur changed s.g name , previously it was "default" s.g 
+
+
+52 as per the definition , tf wil automatically change to desired state but here it wont change 'coz what ever parameters that u have mentioned in the desired state tf will consider and apply canges for those changes only 
+
+53 so, it will show u no changes ..........to do 
+
+
+
+==========================Terraform provider versioning =============
+
+
+  Oveview of provider versioning 
+
+54  provider plgins are released seperately from terraform itself 
+
+55 they have different set of versions 
+
+
+----explicitly Setting Provider Version 
+
+
+56  During terraform init, if version argument is not specified , the most recent provider will be downloaded during initilization 
+
+57  for prod use , u should constrain the accptable provider versions via configuration,to ensure new versins with breaking changes will not be automatically installed 
+
+
+58  in the version section , what is exactly tilde mark(~>)
+
+
+Arguments for specifying provider ::::
+
+there are multiple ways for specifying the version of a provider.
+
+eg:  a  ~>2.0  =  anyversion in the 2.X range 
+
+b       >=2.10,<=2.30  =  any version b/w 2.10 and 2.30 
+
+   
+   terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "5.30.0"
+    }
+  }
+}
+
+provider "aws" {
+  # Configuration options
+}
+
+
+59  if u wnt specific version which in lockfile already n u wnt to change , then "terraform init -upgrade "
+
+
+---Dependency Lock File : 
+
+- Terraform dependency lock file allow us to lock to a specific version of the provider.
+
+- if a particular provider already has a selection recorded in the lockfile,tf will always re-slect that version for installation , even if a new version as become available .
+
+- u ccan override that behaviour by adding "-upgrade" option when you run terraform init
+
+
+
+==========terraform Refresh ====
+
+
+60  tf refresh cmd will check the latest state of ur infrastructur and update the state file accodingly 
+
+
+---point to note 
+
+             you should not typicall need to use this cmd , because terraform automatically 
+performs the same refreshng actions as a part of creating a plan in both terraform plan and terraform apply cmnds .
+
+
+IMP Note : tf refresh relaetd cmnds manualy is pretty dangerous ,it will remove ur entire TF file , however we also have TF backup file to get back again , once if u delete backup file also , all will gone 
+
+
+=========AWS Provider - Authentication Configuration
+
+
+61    provider "aws" {
+     region     = "us-west-2"
+     access_key = "my-access-key"
+     secret_key = "my-secret-key"
+}
+
+
+resource "aws_instance" "terraform" {
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+}
+
+
+at ts stage we have directly hard coding the values in the paramters , it is not safe for security purpose 
+
+62  Better approach 
+
+
+A  the aws provider can source credentials and other settingd from the shared cnfiguration and credentials files .
+
+Default configurations ::
+
+---when u did not mention the location path of ur credentials to provider block , by default , terraform will locate these files at $HOME/.aws/config and $HOME/.aws/credentials on linux and macOS 
+
+
+AWS CLI : 
+
+             it allows customers to manage AWS rsurce directly from CLI 
+
+    When u configure Access/Sccretkeys in AWS CLI,  the location in which these credentials are stored is the same default location the terraform searches credentials from.
+
+
+
+
+===================================================================================Read,Generate ,ModifyConfigurtions=======================================
+
+
+
+===========Cross Resource Attribute References
+
+
+
+63   lets know the challenges generally day - day challenges 
+
+--- it can hapen that in a single terraform file , u are defining two different resources .
+
+
+--- however resource no.2 might be dependent on some value of resource no.1 ,in such case the resource 2 is dependent on resoure no.1 , here in initial stage both resource 1 n 2 are not created , this create a challenge 
+
+
+
+eg: let us assume resource 1 is elastic ip and resource 2 is Security group , now in this sepcific firewall group u wnt to allow 443 port from elastic ip address get created , ow assume both these are part of single terraform file 
+
+-- so elastic ip is not yet created, u wil not really get values of public ip  that u wnt to whitelist in the s.g  
+
+-- in general process first create EIP and add manually port number in the s.g 
+
+-----------workflow 
+
+64  what is the way in which both of these resource can defined n a single terraform file but also the value of elatic ip get computed as part of the firewall rule 
+
+
+65 let us assume that u have defined EIP , once u created eip then only it gets computed in the s.g 
+
+
+66 first know basics of Attributes 
+
+-- each resource has its associated set of attributes 
+
+-- attributes arethe fields in a resource that hold the values that end up in state.
+
+eg : ec2 t has attributes like ID, public_ip, private_ip,Private-dns 
+
+
+--------------how do find attributes associated with a given resource 
+
+67  u can check in tf registry page of certain resources attributes 
+
+
+68  tf allows us to references the attribut of one resource to be used in a different resource .
+
+
+69   eg:  u can associate the value of eip(resource 1 ) in the s.g (resource 2), these files are present in the same tf files , even if it not created yet  but u have associated eip in the security group , tf will know that u have  defined u have given public_ip of eip , so then tf first will create eip it wil fetch the value of puvlic_ip and this value will compute with "cidr" block of s.g , ten s.g is also created 
+
+-- here there is dependency , where eip create first then s.g will create nxt 
+
+
+
+===========Cross Resource Attribute References practicals 
+
+----------create seperate folder for each code example ......
+
+70  now go to tf registry website and  get syntax of eip and s.g 
+
+
+provider "aws"{
+    region = "ap-south-1"
+    access_key = "my-access-key"
+    secret_key = "my-secret-key"
+    
+}
+
+resource "aws_eip" "lb" {
+  domain   = "vpc"
+}
+
+resource "aws_security_group" "allow_tls" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+ 
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = [aws_eip.lb.public_ip]
+  
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "allow_tls"
+  }
+}
+
+
+here , in the cidr block u have mention the spcific resource address which u wnt to white list in the s.g  
+
+--eg : cidr_blocks = [aws_eip.lb.public_ip], here public_ip is attribute where it contains public addres, and aws_eip.lb = resource name 
+
+
+71  once u run tf plan u will gt error like 
+
+    Error: "65.1.192.159" is not a valid CIDR block: invalid CIDR address: 65.1.192.159
+
+    with aws_security_group.allow_tls,
+    on reference-attributes.tf line 11, in resource "aws_security_group" "allow_tls":
+    11: resource "aws_security_group" "allow_tls" {
+
+
+-- this eror is not relating to cross refering attribute , it is about the cidr block 
+
+so to avoid this erro we need to change cidr block in the code 
+
+from    cidr_blocks = [aws_eip.lb.public_ip]   to ["${aws_eip.lb.public_ip}/32"]
+
+
+72  now do tf apply again it will ready to create 
+
+73  now tf apply 1 resource will added (s.g) , now check in  s.g group crated with 443 port number 
+
+
+74 noe destroy resources , tf restroy 
+
+
+75  note: if u dont want to mention ur access key and id ,then u just login the terminal with the "AWS configure" and once u login successfully u no need to mention these values in ur code .
+
+
+=============Output Values
+
+76   o/p values makes information about ur infrastructure available on the commandline and can expose information for other tf configurations to use .
+
+
+77  eg : once u create eip , if u want to ceck public ip then u have to go console and check manually , this will take time so in the cmd line itself if u want to se the o/p details then run the code like this 
+
+
+provider "aws"{
+    region = "ap-south-1"
+   
+}
+
+resource "aws_eip" "lb" {
+  domain   = "vpc"
+}
+
+
+output  "public_ip" {
+    value = aws_eip.lb.public_ip
+}
+
+
+this will show u o/p of public ip address
+
+77 if u wnt url in o/p then 
+
+    output  "public_ip" {
+    value = "https://${aws_eip.lb.public_ip}:8080
+}
+
+
+78 if u wnt the total details of resource so dont mention any atribute like "public_ip" , 
+
+
+       eg :  output  "public_ip" {
+    value = aws_eip.lb
+
+}
+
+
+79  IMP note : o/p values defined in project A can be referenced from code in project B as well 
+
+
+
+=================Terraform Variables
+
+
+80 normally repeated values can create more work in the future 
+
+  eg : if you wnt to change ip address after some time it will create more work changing in all fields 
+
+
+81  so,instead of adding values in each part , we can use Variables ,we can have  central source from which we can import the values from 
+
+--demo 
+
+ 82     resource "aws_security_group" "allow_tls" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+ 
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = [aws_eip.lb.public_ip]
+  
+  }
+
+  ingress {
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+   
+  }
+
+  tags = {
+    Name = "allow_tls"
+  }
+}
+
+
+ if u want to allow specific ip address to all the ingress , u no ned t change manually all fields , u jst create one variables.tf file in th same folder and create ne variable for ur resource values u wnt to change.
+
+
+eg  creating varibale 
+
+variable "vpn_ip" {
+  default = "116.50.30.20/32"
+  
+}
+
+
+now in ur code u jst mention this variable with the variable id ( here, id is "vpn_id")
+
+               var.vpn_id
+
+
+resource "aws_security_group" "allow_tls" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+ 
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = [var.vpn_id]
+  
+  }
+
+  ingress {
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = [var.vpn_id]
+   
+  }
+
+  tags = {
+    Name = "allow_tls"
+  }
+}
+
+
+83  now chck the s.g in the console n also check the source 
+
+
+84 now if u wan to change ip adress u jst change in varible , ten it will aplly for all fields in the tf code 
+
+
+============Approaches for Variable Assignment
+
+
+85  mutliple apporache to variable assignments 
+
+
+-- variables in teraorms cab be asssigned valuesin multilple ways .
+
+
+a nvironment variables 
+
+b command line flags 
+
+c from a file 
+
+d variables Defaults 
+
+
+86  if u did nor mention any xplict value , tf will take default value in the variable.tf file 
+
+eg : tf plan -var="instancetype=t2.small"   if u give like this it will create with t2.small 
+
+
+87   even though if u did not mention in default and did not explicitly metion , once u enter tf pla it will asks u "entr a value " 
+
+
+88 if u want to get value from the the file ten create "terraform.tfvar"  both variable.tf and .tfvar in one folder 
+
+-- whatever the values associated with the variable can be part of this file , i.e
+
+if u did not mention value of instale in variable.tf file and u mention those value in .tfvar file , it will take and create resource for you 
+
+
+NOTE : keep the file name as "terraform.tfvar" always for better results 
+
+
+-- environment approach 
+in windows it wont show u the instance type in same cmd promt u have to open new cmd promt and then able to see the result 
+
+
+===========Data Types for Variables
+
+
+89  ---- oveview of type Constraints 
+
+
+90  te type argument in a variable block allows u to restrict the type of value that will be acepted as the value for a variable 
+
+eg :  variable "image_id" {
+
+         type = string 
+}
+
+if not type constraint is set then any value of any type is accepted 
+
+
+create ne variables.tf file and dont mention type jstenter variable name 
+
+                     variable "usernumber" {}
+
+
+91  eg: 
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+resource "aws_iam_user" "lb" {
+    name = var.usernumber
+    path = "/system/"
+}
+
+92 once u tried tf plan it will asks you to enter the value 'coz u did not mention nay thing in the variables.tf file 
+
+
+93  no mention specific type in variables.tf file 
+
+              variable "usernumber" {
+                  type = number 
+
+}
+
+
+94 now if u nter any string it wont accept , coz u have mentioned it is number 
+
+
+----datatypes keywords 
+
+--string : sequence of unicode charaters like text 
+
+--list :   sequential list of values identified by their position . Starts with 0 
+
+              ["mumbai", "subbu","usa"]
+--Map :  a group of values identifies by named labels , like 
+
+                  {name = "subbu", age = 25}
+
+--number : 200. 999
+
+
+95  eg : lets create aws_elb resource , coz it have list of values 
+
+
+# Create a new load balancer
+resource "aws_elb" "bar" {
+  name               = var.elb_name
+  availability_zones = var.az
+
+  
+
+  listener {
+    instance_port     = 8000
+    instance_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
+  }
+
+  
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 3
+    target              = "HTTP:8000/"
+    interval            = 30
+  }
+
+  
+  cross_zone_load_balancing   = true
+  idle_timeout                = var.timeout
+  connection_draining         = true
+  connection_draining_timeout = var.timeout
+
+  tags = {
+    Name = "foobar-terraform-elb"
+  }
+}
+
+
+
+96  now create variable.tf file and store variables 
+
+
+          
+variable "elb_name" {}
+
+variable "az" {}
+
+variable "timeout" {}
+
+
+97  now ceate terraform.tfvars file 
+
+
+                 elb_name = "myelb"
+
+                 timeout = "400"
+
+                 az = "ap-south-1"
+
+98  hre once u type tf plan it will show u error , it require set of strings so , always add datatype foreay movement 
+
+Planning failed. Terraform encountered an error while generating this plan.
+
+╷
+│ Error: Incorrect attribute value type
+│
+│   on elb.tf line 8, in resource "aws_elb" "bar":
+│    8:   availability_zones = var.az
+│     ├────────────────
+│     │ var.az is "ap-south-1"
+│
+│ Inappropriate value for attribute "availability_zones": set of string required.
+
+
+99  now give list type in az   az = ["ap-south-1a", "ap-south-1b"] , then do plan again , now u will get 
+
+
+=========== Fetching Data from Maps and List in Variable
+
+
+100  fetch values from the list and map 
+
+
+create map n list values 
+
+eg :                 
+
+ provider "aws" {
+  
+}
+
+
+
+resource "aws_instance" "myec2" {
+
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = var.types["ap-south-1"]
+  
+}
+
+variable "list" {
+  type = list
+  default = ["t2.small","t2.medium"]
+}
+
+
+variable "types" {
+    type = map
+  default = {
+    ap-south-1 = "t2.micro"
+    us-east-2 = "t2.nano"
+  }
+} 
+
+
+101 ince u give specif variable , it will ceate according that 
+
+
+try with list n map 
+
+102 -- if u want to fetch from ma then u can give key --- instance_type = var.types["ap-south-1"]
+
+103 -- if u want to fetch from lsit , then give position (0,1,2) ----------  instance_type = var.list[1]
+
+
+===============Count and Count Index
+
+
+-- oveview of Count parameter 
+
+104   the count parameter on resoure can simply configurations and lt u scale resource by simply incrementing a number 
+
+105  let us asume u need to create 2 ec2 instances . one of the common approach is to define 2 seperate resource blocks for aws_instance 
+
+
+106  with the count parameter , weca specify the "count" value and the rsource can be scaled accordingly 
+
+
+provider "aws" {
+  
+}
+
+
+
+resource "aws_instance" "myec2" {
+
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+    count = 3
+  
+}
+
+
+
+107  ---count Index 
+
+
+108   in the resource block where count is set , an additional count object is avalable in expressins , so you can modify the configurations of each instance 
+
+
+109  this object has one attribute:
+
+
+110"count.index" ---- the distinct number (starting with 0) coresponding to this instance 
+
+
+111 in simpleway when ever u want to create  resource it will create with saame name so , to avoid this confusion we use "count.index"
+
+eg :  provider "aws" {
+  
+}
+
+
+
+resource "aws_iam_user" "lb" {
+    name = "loadbalancer.${count.index}"
+    count = 3
+    path = "/system/"
+
+}
+
+
+112   count.index allows us to fetch the index of each iteration in th loop, so it wil change like loadbalancer 1 , loadbalancer 2......
+
+
+------challaenge with default count index 
+
+
+113  having a username lb,lb1, lb2 might not aways be suitable .
+
+
+114 better names like dev-loadb , stage-load , prod-load is better 
+
+
+115  count.index help in such scenario as well 
+
+
+eg : 
+
+
+provider "aws" {
+    region = "ap-south-1"
+  
+}
+
+variable "elb_names" {
+    type = list
+    default = ["dev-loadbaalancer", "stage-loadbalancer","prod-loadbalancer"]
+  
+}
+
+resource "aws_iam_user" "lb" {
+    name = var.elb_names[count.index]
+    count = 3
+    path = "/system/"
+
+}
+   
+  
+116 u will get names like as u mentioned in the list 
+
+
+===========conditional expression 
+
+
+117  a conditional expression uses the value of a bool expresion to select of two values .
+
+
+118  syntax of conditional exression : 
+
+               condition ? true_val : false_val 
+
+119 if condition is true then the result is true_val . if condn is false then result 
+
+
+120  eg of conditional expression 
+
+
+--let assume that there are tw resource block as part of terraform configuration.
+
+--depending on the variable value , one of the resource blocks will run .
+
+
+121  eg: 
+
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+variable "istest" {}
+
+resource "aws_instance" "dev" {
+
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+    count = var.istest == true ? 1 : 0
+  
+}
+
+resource "aws_instance" "prod" {
+
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+    count = var.istest == false ? 1 : 0
+    
+  
+}
+
+122 create terraform.tfvars file and store variable value     istest = true 
+
+
+123  according to condition ,it will crate the resource 
+
+
+===================local values 
+
+
+124  a local value assigns a name to an expresssion, allowing it to be used multiple times within a module repeting it .
+
+
+125  what ever the ags that u have mentioned in the varibles section , te rsources will create with that tags 
+
+eg: 
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+locals {
+  common_tags = {
+    Owner = "DevOps Team"
+    service = "backend"
+  }
+}
+resource "aws_instance" "dev" {
+
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+    tags = local.common_tags
+    
+  
+}
+
+resource "aws_instance" "prod" {
+
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.small"
+    tags = local.common_tags
+    
+    
+  
+}
+
+
+
+126  l.v can be used for multiple different use cases like having a conditional expression 
+
+    eg :  locals {
+                
+              name_prefix = "${var.name != " ? var.name : var.default}"
+
+
+127  imp pointers for local vales
+
+-- l.v can behelpful to avoid repeating the same values or expressins multiple times in a configuration.
+
+
+-- if overused they can also mak a configuration hard to ready by future maintainers by hiding the actual values used 
+
+
+-- use local values only in moderation , in situations where a single value or result is used in many places that values is likely to be changed in future 
+
+
+========================Terraform functions 
+
+
+128  the terraform language includes a number of built-in functions that u can use to transform and combine values .
+
+
+129  the general syntax for function calls is a function name followed by comma-seperated arguments in parentheses:
+
+
+function(argument1, argument2)
+
+
+eg:     max(5,10)
+           
+          10 
+
+
+130  List of Available Functions 
+
+
+-- tf languages does not support user-defined functions , and so only the functions built in to the language are available for use 
+
+
+-- Numeric 
+-- String
+-- Collection
+-- Encoding
+-- Filesystem
+-- Date and Time
+-- Hash and crypto
+-- IP Network
+-- Type Conversion
+
+
+131  go n check in official page of tf registry  built-in-functions 
+
+
+132   eg : create ec2 instance and creates key pair to login 
+
+
+## This snippet is from the Terraform Function.
+
+### functions.tf
+
+provider "aws" {
+  region     = var.region
+  access_key = "YOUR-ACCESS-KEY"
+  secret_key = "YOUR-SECRET-KEY"
+}
+
+locals {
+  time = formatdate("DD MMM YYYY hh:mm ZZZ", timestamp())
+}
+
+variable "region" {
+  default = "ap-south-1"
+}
+
+variable "tags" {
+  type = list
+  default = ["firstec2","secondec2"]
+}
+
+variable "ami" {
+  type = map
+  default = {
+    "us-east-1" = "ami-0323c3dd2da7fb37d"
+    "us-west-2" = "ami-0d6621c01e8c2de2c"
+    "ap-south-1" = "ami-0470e33cd681b2476"
+  }
+}
+
+resource "aws_key_pair" "loginkey" {
+  key_name   = "login-key"
+  public_key = file("${path.module}/id_rsa.pub")
+}
+
+resource "aws_instance" "app-dev" {
+   ami = lookup(var.ami,var.region)
+   instance_type = "t2.micro"
+   key_name = aws_key_pair.loginkey.key_name
+   count = 2
+
+   tags = {
+     Name = element(var.tags,count.index)
+   }
+}
+
+
+output "timestamp" {
+  value = local.time
+}
+
+
+133  in the above code ,we have used multiple functions  functions , that allows us to create resource 
+
+-- lookup : it retrives the value of a single element from a map , given its key , if the given key does not exists , given deault value is returned instead 
+
+             lookup(map, key, default)
+
+-- element :   it retrives a single element from a list 
+
+              element{list, index}
+
+                eg:  element{["a", "b", "c"], 1}
+
+                    ans:    b 
+
+---here countindex is 0 then --- firstec2 created , when countindex is 1 --- secondec2 created 
+
+
+134 creat one id_rsa.pub file to store key pair 
+
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8qO8KcNnKUm04ZC7H5s0WyJwpo/bxG/kJovGUqSz6ViEAhVxC9Tq/piJ9Kk9IUEOkfAjY8Yr5zn9ThRbOVJ4AEHTjSwIie7YMMLjN+OdTn8+cqnfh9RNN3633ixGVP9CpbiDiB7gMsZ78Q2ps/gcxQuuW1XSt8Y0jcgHL0KJQsjU0eS7vhGCjRQ9snrgJxYg+UYM8dOWINhbiVTQbydHGjcYUMZv6cWxZDQPyejObcFsmDY7UcD4ZnuzG/1VaSh+fXjNzqK6TjoY7ajH3F6WVW1Nbh6F/4hJipmT4Q5TxK51s28PCYveWZypc66PTw2D1WHerCXQbuSnMlqpwip/f root@46400bafe371
+
+
+
+
+
+-- file : it reads the contents of a file of the given path and returns them as a string
+
+     tf console and type this file("${path.module}/id_rsa.pub") to get content in that file 
+
+-- timestamp:  it shoes current time stamp
+
+          formatdate(spec, timestamp)
+
+
+=============Data Source
+
+
+135  it allow data to be fetched or computed for use elsewhere in terraform configuration.
+
+
+-- if u try to create instance with ami id in mumbai, but if u want to ceate instance with mumbai region ami in ohio in tf apply time it will gives u error 
+
+
+to avoid this hard coding ami value from the console .......... w have Data Source 
+
+--Defined under the "data block "
+
+-- Reads from a specific data source (aws_ami) and exports rsults under "app_ami"
+
+
+provider "aws" {
+  region = "us-west-2"
+}
+
+
+
+data "aws_ami" "app_ami" {
+    most_recent = true
+    owners = ["amazon"]
+  
+
+
+    filter {
+      name = "name"
+      values = ["amzn2-ami-hvm*"]
+    }
+}
+
+
+resource "aws_instance" "inst-1" {
+    ami = data.aws_ami.app_ami.id
+    instance_type = "t2.micro"
+  
+}
+
+136  from this it will take ami from the owner which u have mentioned in code 
+
+
+================Debugging in Terraform
+
+
+137  tf has detailed log which can be enabled by setting the TF_LOG environment variable to any value.
+
+138  u can set TF_LOG to one of the log levels TRACE,DEBUG,INFO,WARN or ERROR to chnage he verbosity of the logs 
+
+            export TF_LOG=TRACE  run in liux box 
+
+
+
+139  IMP pointers 
+
+
+-- TRACEis the most verbose and it is the default if TF_LOG is set to something other thank a log level name 
+
+
+-- to persist logged o/p u can set TF_LOG_PATH in order to force the log to always be appended to a specific file when logging is enabled.
+
+
+===============TERRAFORM FORMAT 
+
+
+140  "terroform fmt" cmd is used to rewrite tf configuration files to tak care of the overall formatting 
+
+
+141   if you type "terraform fmt" it will  arrange in order
+
+
+
+=====================Validating Terraform Configuration Files
+
+142   tf validate primarily checks whether a configuration is syntactically valid .
+
+143   it can check various aspects including unsupported arguments , undeclared variables  and others 
+
+
+144  
+
+
+provider "aws" {
+  region     = "ap-south-1"
+  
+}
+
+
+resource "aws_instance" "terraform" {
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+
+    tags = {
+        Name = "terrec2"
+    }
+}
+
+145  it u run terraform validate , it will show u Success! The configuration is valid.
+
+
+146  if u add (arguments , undeclared variables) anything in the code which is not related to the resource information , it will through error 
+
+
+==========================Load Order & Semantics
+
+
+-----------------Semantics
+
+147  Terraform generally loads all the configurations files within the directory sprecified in alphabetical order 
+
+
+148   the files loaded must end in either .tf or .tf.json to specify that is in use.
+
+
+eg : if u mention all the rsoucrs in seperate .tf files in same folder , once u type pln it will generate resource succfully
+
+
+
+=======================Dynamic Block 
+
+--challenge : 
+
+-- in many of the use-cases , there are repeatable nested blocks that needs to be defined 
+
+-- this can lead to a long code and it can be difficult to manage in a longer time 
+
+---  eg is while writing S.g u define ingress multiple values
+
+
+------------so to avoid this we have dynamic blocks 
+
+Dynamic Blocks allows us to to dynamically construct repeatable nested blocks which is supported inside resource, data, provider and provisioner blocks : 
+
+
+---------------------------- eg ::  before dynamic 
+
+
+resource "aws_security_group" "demo_sg" {
+  name        = "sample-sg"
+
+  ingress {
+    from_port   = 8200
+    to_port     = 8200
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8201
+    to_port     = 8201
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8300
+    to_port     = 8300
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 9200
+    to_port     = 9200
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 9500
+    to_port     = 9500
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+ ---------------------------------------------with dynamic block  eg ::
+
+
+variable "sg_ports" {
+  type        = list(number)
+  description = "list of ingress ports"
+  default     = [8200, 8201,8300, 9200, 9500]
+}
+
+resource "aws_security_group" "dynamicsg" {
+  name        = "dynamic-sg"
+  description = "Ingress for Vault"
+
+  dynamic "ingress" {
+    for_each = var.sg_ports
+    iterator = port
+    content {
+      from_port   = port.value
+      to_port     = port.value
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+
+  dynamic "egress" {
+    for_each = var.sg_ports
+    content {
+      from_port   = egress.value
+      to_port     = egress.value
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+}
+
+
+
+148  here for_each  value is part of the variable , whatever the values that we have mentioned in the variable block it will create with that values 
+
+
+
+=====================Terraform Taint 
+
+
+149  --- challenges 
+
+
+150  u have created a new resource via terraform.
+
+
+151  users have made a lot of manual changes (both infrastructure and inside the server ) 
+
+
+152  two ways to deal with this : import changes to terraform/Delete and Recreate the resource 
+
+--- in such cases , u "Recreating the Resource "
+
+
+153  eg : if u created one ec2 instance though the terraform and someone has made changes manually in ec2 instances , then appn got down so if u want to get back to original initial code of terraform
+
+
+                    terraform aply -replace="aws_instance.myec2"
+
+----it will delete the instace force fuly and recreate the instace with the initial configuration of ur terraform code 
+
+
+154  Points to note 
+
+Similar kind of functionality was achieved using terraform taint command in older version of tf 
+
+
+=========================Splat Expression 
+
+155  Splat Expression allows us to get a list of all the attributes 
+
+
+eg : 
+
+
+provider "aws" {
+  region     = "ap-south-1"
+ 
+resource "aws_iam_user" "lb" {
+  name = "iamuser.${count.index}"
+  count = 3
+  path = "/system/"
+}
+
+output "arns" {
+  value = aws_iam_user.lb[*].arn
+}
+
+
+if u wnt specific arn , then give o,1,2,3  instead of *
+
+
+=================================Terraform Graph
+
+
+156  tf graph cmd allows to generate a visual representation of either a configuration or xecution plan 
+
+
+157   the output of tf graph is in the DOT format, which can esilt be converted to an image 
+
+
+eg :
+
+
+provider "aws" {
+  region     = "us-west-2"
+  access_key = "YOUR-ACCESS-KEY"
+  secret_key = "YOUR-SECRET-KEY"
+}
+
+resource "aws_instance" "myec2" {
+   ami = "ami-082b5a644766e0e6f"
+   instance_type = "t2.micro"
+}
+
+resource "aws_eip" "lb" {
+  instance = aws_instance.myec2.id
+  
+}
+
+resource "aws_security_group" "allow_tls" {
+  name        = "allow_tls"
+
+  ingress {
+    description = "TLS from VPC"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["${aws_eip.lb.private_ip}/32"]
+
+  }
+}
+
+
+158  here we have 3 resources all are depndent each other firt ec2, then eip, then s.g ,
+
+
+159 now look at how we generate graph from this configurations 
+
+160   type "terraform graph > graph.dot"
+
+
+------- the o/p in the .dot file 
+
+
+161  now u can check in folder one .dot file is ceaated in the folder textbased file 
+
+
+162 if u want to convert text to image , u will need a additional tool "GRAPHVIZ"
+
+163  connct to CLI and n run cmd like " yum install graphviz"
+
+164   now copy th content of .dot file and with in the linux instance ceate one file  with same name "graph.dot" and paste the contents 
+
+
+165   now we have to convet the dot file into image file 
+
+
+166  we will pipe it to specific dot package , dot file we are converting into file as graph.svg
+
+
+167   "cat graph.dot | dot -Tsvg > graph.svg"
+
+
+168  now cat graph.svg and cop contents of it 
+
+
+169  create one file in folder with the name "graph.svg" and paste the contents
+
+
+170 now open folder in laptap and open file wit google chrome u will seee image 
+
+
+cmnds used 
+
+terraform graph > graph.dot
+yum install graphviz
+cat graph.dot | dot -Tsvg > graph.svg
+
+
+
+
+======on windows setu of tr graph 
+
+
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+
+install graphviz....
+
+
+================================Saving Terraform Plan to File
+
+
+171  tf plan file : 
+
+
+-- generated tf plan can be saved to a specific path.
+
+--  tis plan can be used with tf apply to be certain that only the chnages shown in this plan are applied .
+
+
+eg :   terraform plan -out=path(name of the file)
+
+
+172 
+
+ provider "aws" {
+  region     = "ap-south-1"
+  
+}
+
+
+resource "aws_instance" "terraform" {
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+
+    tags = {
+        Name = "terrec2"
+    }
+}
+
+
+
+173    if u want to save in specific file or path , then do 
+
+terraform plan -out=demopath, it wil create one demopath(in binary format)  file in the same folder
+
+
+174 even if u cange th configuratio in the main file t2.large but u are doing tr apply from the demo path so what ever it is in demo path it will create with that configuration (t2.micro).
+
+
+========================Output 
+
+
+175  tf output cmd is used to extract the value of an o/p varibale from state file 
+
+
+eg : 
+
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_eip" "lb" {
+  domain   = "vpc"
+}
+
+output "public-ip" {
+  value = aws_eip.lb.public_ip
+}
+
+
+
+------ if u want spcific o/p then   terraform output public_ip
+
+
+========================Terraform Settings 
+
+
+176   the special terraform cofiguration bloc type is used to configure some behaviour of terraform itself ,such as requering a minium terraform version to apply ur configuration.
+
+
+177  terraform setings are gathered together into tf blocks 
+
+
+           eg :    terraform {
+                      # .....
+                  }
+
+178  ---------- ----setting 1 = Tf Version
+
+ 
+---- the required_version setting accepts a version constraint string , which specifies which versions of tf caan be used with ur configurations 
+
+
+--- if the running version of tf doesn't match the constrints specified , tf will roduce an error and exit without taking any further actions 
+
+
+
+teraform {
+
+   rquired_version = "> 0.12.0"
+}
+
+
+--------------setting2 Provider Version 
+
+
+179    the "required_provider block specifies all ofthe providers required by the current module mapping each local provider name o a source addres and a version constraint 
+
+
+
+terraform {
+  required_version = "< 0.11"
+  required_providers {
+    aws = "~> 2.0"
+  }
+}
+
+provider "aws" {
+  region     = "ap-southeast-1"
+  access_key = "YOUR-KEY"
+  secret_key = "YOUR-KEY"
+}
+
+resource "aws_instance" "myec2" {
+   ami = "ami-0b1e534a4ff9019e0"
+   instance_type = "t2.micro"
+}
+
+
+================================Dealing with Large Infrastructure
+
+
+180 challenges with Large infrstructure 
+
+
+--- when u have a larger infrastructure , u will face issue related to API limits for a provider 
+
+
+eg : if u have 5ec2, 3rds, 100 SG rules , vpc infra in infra.tf file 
+
+
+181  so once do tf plan , the first thing is that "update the state of each resource ",tf refresh happen and also depending up on the resource the aws provider might also increases
+
+
+182   here 2 dis advantages 
+
+--- overall api class are increase 
+
+---it an slow down the operations for u 
+
+
+----------------Dealing with Larger Infrastructure 
+
+
+183  switch to smaller configuration were each can be aplied independently .
+
+  instead of put ur resource in single tf file , u should make them nto smaller pieces 
+
+  all ec2 resource in ec2.tf , all rds in rds.tf ............
+
+
+
+184  we can prvent tf from quering the current stateduring opertions like tf plan .
+
+
+---- ths can be achieved with the "-refrsh=false flag"  by doing this the amount of api calls will reduce 
+
+
+--- 2nd way is u can directly "specify the target"
+
+the  "-target=resource flag can be used to target a specific resource  
+
+
+185 it generally used as a means to operate on isolated portions of very large cofigurations 
+
+
+
+eg :   tf plan -target=ec2 
+
+
+
+---practical 
+
+
+
+provider "aws" {
+  region     = "ap-southeast-1"
+  access_key = "YOUR-KEY"
+  secret_key = "YOUR-KEY"
+}
+
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+
+  name = "my-vpc"
+  cidr = "10.0.0.0/16"
+
+  azs             = ["ap-southeast-1a", "ap-southeast-1b", "ap-southeast-1c"]
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+  tags = {
+    Terraform = "true"
+    Environment = "dev"
+  }
+}
+
+resource "aws_security_group" "allow_ssh_conn" {
+  name        = "allow_ssh_conn"
+  description = "Allow SSH inbound traffic"
+
+  ingress {
+    description = "SSH into VPC"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    description = "HTTP into VPC"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    description = "Outbound Allowed"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_instance" "myec2" {
+   ami = "ami-0b1e534a4ff9019e0"
+   instance_type = "t2.micro"
+   key_name = "ec2-key"
+   vpc_security_group_ids  = [aws_security_group.allow_ssh_conn.id]
+}
+
+
+-----in this file we have 3 resource  vpc , s.g and ec2 instance resources 
+
+
+186  now do tf apply -auto-approve
+
+
+187 now for eg if u have anyting in the s.gand then again if u do tf pln it will refresh all the resource in the file 
+
+---it will again increase the API calls 
+
+
+188  so to avoid this , terraform plan -refresh=false
+
+it will do refresh only changed resources not entire rsource , this would decrease api calls
+
+~ ========= this symbol means update in-place 
+
+
+
+====================ZIPMAP Function 
+
+
+189  the zimap function constructions aa map from a list of keys and a corresponding list of values.
+
+
+eg :  
+
+
+list of keys               list of values  
+
+piineapple                  yellow            ----------> zipmap     pineapple=yelow
+
+orange                      orange                                   oange=oange
+
+strawberry                  red                                       strawberry=red
+
+do type in tf console ,then we will get o/p like this 
+
+ zipmap(["pineapple","oranges","strawberry"], ["yellow","orange","red"])
+{
+  "oranges" = "orange"
+  "pineapple" = "yellow"
+  "strawberry" = "red"
+}
+>
+
+
+
+190 syntax  ---------  zipmap( keyslist, valuelist) 
+
+eg :   > zipmap(["a", "b"] , [1,2])
+
+{
+
+    "a" = 1
+    "b" = 2
+}
+
+
+191   simple use case 
+
+
+--you r creating multiple IAM users 
+
+-- u need o/p which contain direct maping of IAM names and ARNs
+
+
+provider "aws" {
+  region     = "us-west-2"
+  access_key = "YOUR-ACCESS-KEY"
+  secret_key = "YOUR-SECRET-KEY"
+}
+
+
+
+resource "aws_iam_user" "lb" {
+  name = "demo-user.${count.index}"
+  count = 3
+  path = "/system/"
+}
+
+output "arns" {
+  value = aws_iam_user.lb[*].arn
+}
+
+output "name" {
+  value = aws_iam_user.lb[*].name
+}
+
+output "zipmap" {
+  value = zipmap(aws_iam_user.lb[*].name, aws_iam_user.lb[*].arn)
+}
+
+
+
+-- do tf apply -auto-approve 
+
+
+u will get o/p like 
+
+
+
+arns = [
+  "arn:aws:iam::298132369629:user/system/demo-user.0",
+  "arn:aws:iam::298132369629:user/system/demo-user.1",
+  "arn:aws:iam::298132369629:user/system/demo-user.2",
+]
+name = [
+  "demo-user.0",
+  "demo-user.1",
+  "demo-user.2",
+]
+zipmap = {
+  "demo-user.0" = "arn:aws:iam::298132369629:user/system/demo-user.0"
+  "demo-user.1" = "arn:aws:iam::298132369629:user/system/demo-user.1"
+  "demo-user.2" = "arn:aws:iam::298132369629:user/system/demo-user.2"
+}
+
+
+
+===================================comments in Terraform code
+
+
+192   a cmnt is a text note added to source code to provide explanatory information, usally about the function code 
+
+
+193 tf suports 3 different syntaxes for cmnts 
+
+
+194   # = begins a single-line comment , ending at the end of the line 
+
+      // =  also beings a single-line cmnt , as an alternative to #
+
+      /* and */ =  start and end delimiters for a cmnt thatmight span over multiple lines 
+
+
+
+==============================Resource Behavior and Meta Arguments
+
+
+195  Basics ---
+
+
+A "resource block" declares that u want a particular infrastructure object to exists with the gven settings 
+
+---------How terraform Applies a Configuration 
+
+
+-- create resource that exists in the configuration but are not associated with a real infrastructure object in the state 
+
+-- Detroy resource that exist in the state but no longer exist n the configuration 
+
+-- Update in-place resource whose arguments have changed
+
+-- Destroy and re-create resource whose arguments hve changes but which cannot b update in-place due to remote API limitations.
+
+------------------limitatins 
+
+-- what happens if we want to change th default behaviour ?
+
+
+EG:  some modification happened in Real infrastructure object thhta is not part of terraform but u want to ignore tose changes during terraform apply 
+
+
+in simle words---- if u created with the name "hello" , tmrw some one in the cnsloe add another name "hii" , once u type tf aply the tf will destroy manual chnages and create resource with the configuration that u have mentioned n the tf code.
+
+--we can ignore these type of default behaviour by using "meta-arguments"
+
+
+
+eg : meta-argument (base code)
+
+
+provider "aws" {
+  region     = "us-east-1"
+}
+
+resource "aws_instance" "myec2" {
+    ami = "ami-0f34c5ae932e6f0e4"
+    instance_type = "t2.micro"
+
+    tags = {
+        Name = "HelloEarth"
+    }
+}
+
+
+196 if u add tags in the console , n do apply then tf will destroy the instance and create new instance with the configuratin whch u have mentioned in the terraform code.
+
+
+197   we can also ignore this default behaviur of tf
+
+
+198  using meta Arguments 
+
+
+-- tf allowa us to include meta-arguments within the resource block which allows some details of this standard resource behaviour to be customized on a per-resource basis.
+
+
+inside resource block u add lifecycle block
+
+
+
+provider "aws" {
+  region     = "us-east-1"
+}
+
+resource "aws_instance" "myec2" {
+    ami = "ami-0f34c5ae932e6f0e4"
+    instance_type = "t2.micro"
+
+    tags = {
+        Name = "HelloEarth"
+    }
+
+    lifecycle {
+        ignore_changes = [tags]
+    }
+}
+
+now add tags from console 
+
+199  now do tf plan , it wont show u any error 
+
+
+200 there are multiple meta argumnts thta allowed by terraform , 
+
+
+eg :   lifecycle : allows mdification of the resource lifecycle
+
+-- depends_on  :  handle hidden resource or module dependencies that terraform cant automatically infer 
+
+
+-- count :  Accepts a whole number , and creates that many instances of the resource 
+
+--for_each : accepts a map or a set of strings , and creates an instances for each item in that map or set 
+
+-- Provider :  Specifies which provider configuration to use for a rsource , overriding Terraforms default behaviour of selecting one based on the resource type name .
+
+
+===================LifeCycle meta argument and types 
+
+
+--They are four arguments available within lifecycle block
+
+
+1 create_before_destroy :  new replacement object is created first, and the prior object is destroyed after the replacement is created .
+
+
+2  prevent_destroy :  tf to reject with an error any plan that would destroy the infrastructure object asociated with the resource 
+
+
+3 ignore_changes : ignore certain changes to the live resource that doe not match the configuration 
+
+4 relace_trigged_by :  replaces the resource when any of the referenced items change 
+
+
+==============================1 create_before_destroy
+
+
+201  by default, when TerraForm must change a resource argument that cannot be updated in place due to the remote API limitation, TerraForm will instead destroy the existing object and then create the new replacement object with the new configured argument.
+
+
+202  
+
+
+provider "aws" {
+  region     = "us-east-1"
+}
+
+resource "aws_instance" "myec2" {
+    ami = "ami-0f34c5ae932e6f0e4"
+    instance_type = "t2.micro"
+
+    tags = {
+        Name = "HelloEarth"
+    }
+}
+
+in the above example , if u change any thing like ami , once u aply tf will destroy first and then create new instance 
+
+
+202  to avoid this problem we have "create_before_destroy" argument 
+
+it changes tis behavour so that new replacemnt object is created fist , and prior object is destoyed after the replacement is created 
+
+
+code for the create_before_destroy is 
+
+
+provider "aws" {
+  region     = "us-east-1"
+}
+
+resource "aws_instance" "myec2" {
+    ami = "ami-0f34c5ae932e6f0e4"
+    instance_type = "t2.micro"
+
+    tags = {
+        Name = "HelloEarth"
+    }
+
+    lifecycle {
+      create_before_destroy = true
+    }
+}
+
+
+so here first it wll create and destroy the prior resource 
+
+
+==================================Prevent Destroy Argument 
+
+
+203    tf to reject with an error any plan that would destroy the infrastructure object asociated with the resource 
+
+eg provider "aws" {
+  region     = "ap-south-1"
+}
+
+resource "aws_instance" "myec2" {
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+
+    tags = {
+        Name = "HelloEarth"
+    }
+
+
+     lifecycle {
+        prevent_destroy = true
+    }
+}
+
+
+
+Error: Instance cannot be destroyed
+│
+│   on prevent-destroy.tf line 5:
+│    5: resource "aws_instance" "myec2" {
+│
+│ Resource aws_instance.myec2 has lifecycle.prevent_destroy set, but the plan calls for this resource
+│ to be destroyed. To avoid this error and continue with the plan, either disable
+│ lifecycle.prevent_destroy or reduce the scope of the plan using the -target flag.
+
+
+204  Points to be note 
+
+
+this can be used as a measure of safety againast the accidental replacement of objects that may be costly to reproduce , such as db instance
+
+
+--nut if u remove the whole resource from the code  then once u try to apply then it woll destroy coz it dont know it is imp rsource 
+
+
+
+=============================Ignore Changes 
+
+205  refer 198 point 
+
+if u want ignore all changes , even if u did manually in console and did in tf code it will ignore once u set 
+
+                  
+ignore_changes = all
+
+
+====================== Challenges with Count Meta-Argument
+
+
+206  generally resource are identified by the index value from the list 
+
+
+207  --- challenge 1 
+
+in order of elements of index is changed ,this can impact all the other resources .
+
+
+-----IMP note for count 
+
+-- if ur resource are almost identical , count is appropriate .
+
+-- if distinctive values are needed in the arguments , usage of for_each is recommended.
+
+
+=====================================DATA TYPE - SET 
+
+208  basics of LIST 
+
+-- list are used to store multile items in a single variable 
+-- list items are ordered , changable, and allow duplicate values.
+-- list items are indexed, the first index[0], 2nd item has index[1] etc.
+
+
+Understanding SET 
+
+-- it is used to store multiple items in a single variable 
+
+-- SET items are unordered and no duplicates are allowed 
+
+demoset = {"apple", "ant"}
+
+
+209 in tf there is a function called "toset" function 
+
+
+it will convert the list of values to SET 
+
+means if u ad duplicates in the list , once u use toset , it remove duplicates and turns into set 
+
+
+
+====================================for_each in  terraform 
+
+
+210 it makes use of map/set as index value of the created resource.
+
+
+
+provider "aws" {
+  region     = "us-west-2"
+  access_key = ""
+  secret_key = ""
+}
+
+resource "aws_iam_user" "iam" {
+  for_each = toset( ["user-01","user-02", "user-03"] )
+  name     = each.key
+}
+
+
+once u aply it will create in the form user01 = 1
+
+user02 = 2 ......
+
+
+even if u add any xtra values it wont get impact 
+
+
+now try with instance 
+
+
+resource "aws_instance" "myec2" {
+  ami = "ami-0cea098ed2ac54925"
+  for_each  = {
+      key1 = "t2.micro"
+      key2 = "t2.medium"
+   }
+  instance_type    = each.value
+  key_name         = each.key
+  tags =  {
+   Name = each.value
+    }
+}
+
+
+now , here we have used for_each with seperate set of values key1 = "t2.micro"
+      key2 = "t2.medium" and we have instace type and key_name  so here 1st t2.micro value and 2nd t2.medium and key value 1st key1 and 2nd key2
+
+
+211  once u plan it will create key 1   it is not 0 , instance type is t2.micro and key is key 1 and tag is t2.micro
+
+lly same format for key 2
+
+
+----------------The each Object 
+
+
+-- blocks where for_eacch is set , an additional each object is availabe .
+
+this object has 2 attributes : 
+
+1  each.key  === the map key ( or set member) corsponding to this instance .
+
+2  eah.value === the map value corresponding to this instance 
+
+
+
+
+==============================================================================3.Terraform Provisioners====================================================
+
+
+
+=============================== Understanding Provisioners in Terraform
+
+
+212  til now we have been working only on creation and destruction of infrastructure scenarious.
+
+
+eg: we hve creatd web-server ec2 instance with terraform.
+
+
+problem : it is only an ec2 instance , it does not have any software installed 
+
+
+------what if we wanr a comete end to nd soln?
+
+
+213   to ans this we have "Terraform Provisioners"
+
+-- provisioners are used to execute scripts on a local or remote machine as part of resource creation or destruction.      
+
+ eg : 
+
+--- on creation of web-server , execute a script which install Nginx Web server.
+
+
+ec2 ------->  install nginx 
+
+
+
+==========================Typs of Provisioners 
+
+
+214   tf has capability to run provisioners both at the time of resource creation as well as destruction .
+
+
+-- tere are 2 types of provisioners:
+
+
+A .  Local-exec 
+
+B .   remote-exec 
+
+
+215   thhese are the 2 imp primary ones , which often used in the orgaizations 
+
+
+
+216   ----------  Local-exec  
+
+-- these are allow us to invoke local executable after resource is created 
+
+
+eg: 
+
+
+resource "aws_instance" "web" {
+.
+.
+..
+
+provisioner "local-exec" {
+
+command = "echo ${aws_instance.web.private_ip} >> private_ips.txt
+
+}
+
+}
+
+
+here it will run the cmd in the local system , not in the remote server 
+
+
+217  ------------  Remote Exec Provisioners 
+
+
+these are allow to invoke scripts directly on the remote server .
+
+
+eg: 
+
+resource " aws_instance" "web" 
+
+.
+.
+.
+.
+provisioner"remote-exec"
+
+........................
+
+}
+}
+
+
+IMP : there are other provisioners also there like Chef, connection, file, null_resource,
+
+habitat, salt-masterless
+
+
+==========================Implementation of Remote-exec provisioners
+
+
+218  create key pair with (.pem)
+
+219   copy the key file and paster in provisioners folder 
+
+
+220  now we are creating the ec2 instance and install the nginx server on ec2 instace through the terraform 
+
+
+221   eg  :
+
+
+provider "aws" {
+  region     = "ap-south-1"
+ 
+}
+
+
+resource "aws_instance" "myec2" {
+   ami = "ami-02a2af70a66af6dfb"
+   instance_type = "t2.micro"
+   key_name = "terraform-key"
+
+   connection {
+   type     = "ssh"
+   user     = "ec2-user"
+   private_key = file("./terraform-key.pem")
+   host     = self.public_ip
+    }
+
+ provisioner "remote-exec" {
+   inline = [
+    # Updating with the latest command for Amazon Linux machine
+     "sudo yum install -y nginx",
+     "sudo systemctl start nginx"
+   ]
+ }
+}
+
+
+222 here we have resource of ec2 instance ,
+
+-----once the instance is created we have connection , so ssh connection 
+
+--- nxt is user  --  "ec2-user"
+
+--- password -- we have to suply private key 
+
+--- host --- public ip of ec2 , once it is available 
+
+223   nxt imp block is provisioners block , where once tf logged in ec2 instance via ssh ,
+
+what are the cmnds to run, those are the cmnds that we are mentiond in provisiners block
+
+
+224  so looking on the overall stucture , the ec2 create from (keypair that u have given 
+
+eg: terraform-key.pem)
+
+-- then tf login into the ec2 instance , through the tf -key .pem, once it login and it go the instance and run the cmnds in provisioners block 
+
+
+
+225 
+
+--once u do tf plan , we did not assign s.g for the instane so ,it will assign "default s.g group" will asign to the instance 
+
+
+IMP :so make sure to have inbound rules of default s.g group ( 22, 80) to connect the instance n download the rquired softwares  
+
+-- go and add inbound rules for 22 , 80 ports in default s.g 
+
+
+226  now do tf apply -auto-approve
+
+
+227  here 
+
+-- instance created 
+
+-- Connecting to remote host via SSH...
+
+-- Connected!
+
+-- installed nginx 
+
+
+228 to check it is installed or not go and copy public ip and paste in browser 
+
+
+
+
+Welcome to nginx!
+If you see this page, the nginx web server is successfully installed and working. Further configuration is required.
+
+For online documentation and support please refer to nginx.org.
+Commercial support is available at nginx.com.
+
+Thank you for using nginx.
+
+
+===========================================Local-exec
+
+229  one of te most used approach of local-exec is to run "ansible-playbooks" on the created srver after the resource is created
+
+
+resource "aws_instance" "myec2" {
+   ami = "ami-02a2af70a66af6dfb"
+   instance_type = "t2.micro"
+
+   provisioner "local-exec" {
+    command = "echo ${aws_instance.myec2.private_ip} >> private_ips.txt"
+  }
+}
+
+
+230 make sure to have echo is working in ur terminal , it do once instance is created then it will take the private ip of instance and store in given file in code 
+
+231 the connection block is not needed 
+
+232  once ec2 instance is created ,
+then it will Provisioning with 'local-exec'...
+
+-- Executing: ["cmd" "/C" "echo 172.31.14.220 >> private_ips
+
+
+234  go n check file created in folder  ,it will contain ur private ip address
+
+
+235  ======================================provisioners Types 
+
+
+236  2 typesf primary provisioners 
+
+
+A  creation-time provisioner   :  these are only run during cration, not during updating or any other lifeecycle
+
+--if a creation-time provisioner fails, the resource is marked as tainted.
+
+
+B  destroy-time provisioner :  Destroy provisioner are run before the resource is destroyed
+
+
+237  Destroy Time Provisioner :
+
+
+if "when = destory" is specified , the provisioner will run when the resource it is defined within is destroyed 
+
+
+
+### Important Note:
+
+Make sure to have the ec2-key.pem file present in the working directory for the provisioner to be able to connect to the instance.
+
+### Demo Code Used During Demo:
+
+
+
+provider "aws" {
+  region     = "ap-south-1"
+ 
+}
+
+
+resource "aws_security_group" "allow_ssh" {
+  name        = "allow_ssh"
+  description = "Allow SSH inbound traffic"
+
+  ingress {
+    description = "SSH into VPC"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    description = "Outbound Allowed"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_instance" "myec2" {
+   ami = "ami-0b1e534a4ff9019e0"
+   instance_type = "t2.micro"
+   key_name = "ec2-key"
+   vpc_security_group_ids  = [aws_security_group.allow_ssh.id]
+
+   provisioner "remote-exec" {
+     inline = [
+       "sudo yum -y install nano"
+     ]
+   }
+   provisioner "remote-exec" {
+       when    = destroy
+       inline = [
+         "sudo yum -y remove nano"
+       ]
+     }
+   connection {
+     type = "ssh"
+     user = "ec2-user"
+     private_key = file("./ec2-key.pem")
+     host = self.public_ip
+   }
+}
+ 
+
+Make sure to have the terraform-key.pem file present in the working directory for the provisioner to be able to connect to the instance.
+
+
+
+-- here create instance 
+
+-- connect to shh
+
+--download nano softwares
+
+
+
+238  once u destroy , 
+
+--  Provisioning with 'remote-exec'...   ---------> this is "destroy time provisioner "
+
+-- within here it go and remmoving nano package that ave installed 
+
+-- now star destroying process of ec2 and s.g 
+
+
+so , hete D.P are run before resource is destroyed
+
+
+
+239  
+
+
+now remove egress rule in s.g n save the code 
+
+-- here previous ec2 is terminated n try to create new instance , n u will get error u will get error 
+
+-- when u chck outbound rules u cant find any rules 
+
+240  by this , snce the creation provision time is failed , the specific resource is marked as tainted 
+
+
+=========================================== Failure Behavior for Provisioners
+
+
+241  by , deafult , provisioners that fail will also cause the terraform apply itself to fail 
+
+-- he "on_failure" can be used to change this. this allowed vaues are :
+
+allowed values :  continue , fail 
+
+
+A continue :  ignore the error and continue with creation or destruction 
+
+
+B  fail : raise an error and stop applying ( the default behaviour) .if this is a creation provisioner, taint the resource.
+
+
+
+
+===========================================================Terraform Modules and Workspace========================================================
+
+
+ ==================DRY PRINCIPLE 
+
+242   ndesand DRY Approach 
+
+
+243  in software engineering , Don't repeat yourself(DRY) is a principle of software development aimed at reducing repetation of software patterens.
+
+
+244 in the earlier lecture , we are making static content into variables so that there can be single source information.(data source)
+
+
+255  DRY approach is very similar 
+
+
+266 we do repeat multiple times various terraform resources for multiple projects.
+
+
+sample ec2 Rsource, eip and etc.... we are using same resource again and again for multiple projects.
+
+
+
+277  -------Centralized Structure 
+
+we can centralize the terraform resources and can call out from tf files whenever required.
+
+
+===================Implementing EC2 module with Terraform
+
+
+288  
+
+-- create new folder , within this create 2 folder 1. modules, 2 projects 
+
+-- now inside projects again create 2 folders 1 A, 2 B 
+
+--  modules folder ,u can create folders for each resources like ec2, s.g, eip etc...
+
+-- create ec2 folder in module , in this module create tf file which has ec2 resource code inside ec2 folder ec2.tf file shuld be there.
+
+
+299 now in projects folder > A > create myec2.tf file
+
+
+300 here u no need to again write code for the ec2 resource , jst give reference of the module 
+
+
+eg :  
+
+module "ec2module" {
+  source = "../../modules/ec2"
+}
+
+
+301 again create providers.tf file in A folder and wirte provider code 
+
+
+provider "aws" {
+    region = "ap-south-1"
+}
+
+
+302  now open ur folder in cmd with A folder and  do "tf init"
+
+
+303  ==========================Challenges with Modules 
+
+
+304    one command need on infrstructure management is to build environment like staging, prod with similar set up but keeping environment variables different .
+
+
+eg :   staging = instance_type = t2.micro 
+
+         produn =  instance_type = t2.large 
+
+--- depending on the work , some of the values will change accordingly 
+
+
+305  1st challenge, 
+
+
+----here we have hard coded the instnce_type , so u can't change this type in the destination(like production , development ) 
+
+Soln :  to overcome this we have to use "variables" 
+
+
+-- go to mduels > ec2 > ec2.tf 
+
+write te code with variables 
+
+
+eg :    resource "aws_instance" "terraform" {
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = var.instance_type
+
+    tags = {
+        Name = "terrec2"
+    }
+}
+
+
+
+--- now in ec2 folder create one variables.tf file and store variable code 
+
+
+eg :    variable "instance_type" {
+  default = "t2.micro"
+}
+
+
+
+NOTE : here default value is very imp 'coz whenever if we did not give any instance type then it will consider as "default "
+
+
+---now go to projetcs > a > myec2.tf code 
+
+
+u can explicitly mention ur instance type ,it can override the default iinstance type 
+
+
+eg :
+
+
+module "ec2module" {
+  source = "../../modules/ec2"
+  instance_type = "t2.medium"
+}
+
+
+-- now do check tf plan , now it is t2.medium instance type
+
+
+
+305   ====================Using Locals with in Modules 
+
+
+306   challenge 
+
+
+there can be many repetitive values in modules( like in s.g we have port numbers ) and tis can make ur code difficult to maintain
+
+IMP :::::-- u can centrlize these using "variables" but users will be able to override it .
+
+---to overcome this we have to use "locals"
+
+
+307  create one new folder 
+
+-- in that folder create 2 folders 1 modules , 2 projects 
+
+--in modules , create one s.g folder > sg.tf file , it contains security group code 
+
+
+eg :      
+
+
+resource "aws_security_group" "ec2-sg" {
+  name        = "myec2-sg"
+
+  ingress {
+    description      = "Allow Inbound from Secret Application"
+    from_port        = 8433  ------------  var.app_port
+    to_port          = 8433
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_security_group" "elb-sg" {
+  name        = "myelb-sg"
+
+
+  ingress {
+    description      = "Allow Inbound from Secret Application"
+    from_port        = 8433  ---- var.app_port
+    to_port          = 8433
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+}
+
+
+
+
+-- here it is going to create 2 s.g ,one is for ec2 and 2nd one is elb 
+
+
+now in projects folder 
+
+--create one new folder like B 
+
+-- create my-sg.tf file and link it with the module
+
+
+module "sgmodule" {
+  source = "../../modules/sg"
+}
+
+
+-- now we have so many repeate values(port numbers) here , so if u want to change those values after some days it wil become difficult so , to ovecome this we have "variables concept" 
+
+-- create one variable.tf file in module > sg > variables.tf file 
+
+
+variable "app_port" {
+    default = "8443"
+  
+}
+
+
+-- if u wnat to change the value , u can change here it wil aply to all
+
+-- here th problem is if anyone override the ort number it will take that port number in the plan stage , so we dont want to edit any one accidentally 
+
+
+now open foler > projcts > B > tf init in terminal 
+
+it will choose override port number if u try to override 
+
+
+--so to avod this we have to use "Locals"
+
+by using locals in this code , there are 2 advantages here ,
+
+1 .  u are defining the same value multiple times , so u can have a central place where all the values ar stored and u can easily modify it as well 
+
+2 .  the users will not able to change this specific value 
+
+-- go to sg.tf code 
+
+add code for locals 
+
+
+locals {
+       app_port = 8443
+}
+
+and also change port =  local.app_port 
+
+
+
+resource "aws_security_group" "ec2-sg" {
+  name        = "myec2-sg"
+
+  ingress {
+    description      = "Allow Inbound from Secret Application"
+    from_port        = local.app_port
+    to_port          = local.app_port
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_security_group" "elb-sg" {
+  name        = "myelb-sg"
+
+
+  ingress {
+    description      = "Allow Inbound from Secret Application"
+    from_port        = local.app_port
+    to_port          = local.app_port
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+}
+
+locals {
+  app_port = "8443"
+}
+
+
+
+-- now here if u try to override with the explict value , u cant change whenever if we use locals .
+
+
+
+
+308  =========================================== Referencing Module Outputs
+
+
+309  Accessing Child Module OutPuts 
+
+
+in aparent , outputs of child modules are available in expressions as module. <MODULENAME>.<OUTPUTNAME>
+
+310 create 1 new folder 
+
+-- moodules > sg folder > sg.tf 
+
+resource "aws_security_group" "ec2-sg" {
+  name        = "myec2-sg"
+
+  ingress {
+    description      = "Allow Inbound from Secret Application"
+    from_port        = 8433
+    to_port          = 8433
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+}
+
+output "sg_id" {
+  value = aws_security_group.ec2-sg.id
+}
+
+
+
+
+
+
+-- projects > c folder > my-sg.tf and providers.tf   
+
+
+
+ module "sgmodule" {
+  source = "../../modules/sg"
+}
+
+resource "aws_instance" "web" {
+  ami           = "ami-02a2af70a66af6dfb"
+  instance_type = "t3.micro"
+  vpc_security_group_ids = [module.sgmodule.sg_id]-------module. <MODULENAME>.<OUTPUTNAME>
+}
+
+output "sg_id_output" {
+  value = module.sgmodule.sg_id
+}
+
+
+
+-----------  provider "aws" {
+  region     = "ap-south-1"
+}
+
+
+
+here first we are calling sg module , it will ceate new security group along wit this we are creating new aws resource.
+
+-- ths aws instance should have security groupwhich is created previously 
+
+-- do tf init in c folder 
+
+
+311  tf plan , here first s.g will create and this s.g assigned to the ec2 instance 
+
+312 ceck the instnce is created with the my-ec2 s.g group 
+
+
+313 ================================Terraform Registry 
+
+
+314  verified modules == blue badge 
+
+315  using tf registry module within code , we can make use of the source argument that contains the module path 
+
+316  below code references to the ec2 instance module within terraform registry 
+
+
+317  ====================Publishing modules 
+
+
+318  anyone can publish and shae modules on the terraform registry 
+
+
+319   pubished modules suort versioning , automatically generate documentation, allow browsing version histories , show examles and ReADMEs and more 
+
+
+------Requriment for publishng Module 
+
+319  GITHUB : module must be on github and must be public epo
+
+320   Named : Module repositories must use this 3 part name format terraformf<PROVIDER>-<NAME>
+
+321 Repo Description :  the GITHUB  repo descrpn is used topopulate he shortt description of the module 
+
+
+323  standard module structure :  the module must adhere to the standard module structure .
+
+
+324  x.y.z tags for rleases :  The registry uses tags to identify module versions , release tag names must be a semantic version , which can optically be prefixed with a v. for eg : v1.0.4 and 0.9.2
+
+
+325  --------standard module structure 
+
+
+-- the standared module structure is a file anad directory layout that is recommend for resuable modues distributed in seperate repositories  
+
+
+eg : README,md
+main.tf
+variable.tf
+output.tf
+
+
+=============================TErraform Workspace
+
+
+326  tf allows us to have "multiple workspaces", with each of the workspace we can have different set of environment varibales associated 
+
+
+eg :  
+
+
+in project A , in staging workspace i have t2.micro and in Production workspace i have t2. medium 
+
+
+======================implementing the terraform workspace 
+
+327 coming to implementing process , here we haveec2 resource 
+
+
+--- so, i we have deafult ws - t2.nano 
+       --  dev = t2.micro 
+       -- prod = t2.medium
+
+
+328  if u type tf workspace in cmd line it will gives u workspce cmnds 
+
+
+ new, list, show, select and delete Terraform workspaces.
+
+Subcommands:
+    delete    Delete a workspace
+    list      List Workspaces
+    new       Create a new workspace
+    select    Select a workspace
+    show      Show the name of the current workspace
+
+
+329   here we are create done ec2 instnce depending on the workspace we have to create thta type of instance type 
+
+
+eg :   if we have deafult ws - t2.nano 
+                --  dev = t2.micro 
+                -- prod = t2.medium
+
+330  create 3 workspaces  
+
+-- terraform workspace new "NAME OF UR workspace"
+
+
+331  u can switch the wrokspace 
+
+
+terraform workspace select <name of workspace>
+
+332 according to the workspace u can get instnce type and lookup function 
+
+
+
+NOTE:  in workspce tf maintain seperate tf files  for each workspace  
+
+-- for deault workspace , th tf file will crate on root directory itself 
+
+
+
+================================================================Remote State management====================================================
+
+
+333 ------------------Integrating with GIT for team management 
+
+--local changes are not always good , coz ut filemay get deleted , harddisk may crashed 
+
+
+so we have to work with team cllabration tools like github , bitbucket
+
+
+334  ------------Supported Module Souces 
+
+the source argument in a model block tels trraform where to find the source code for the desired child module 
+
+> localpath 
+> terraform Registry 
+> Github
+> Bitbucket
+> Generic Git,Mercurial repositories 
+> HTTP URLs
+> S3 buckets 
+> GCS buckets 
+
+
+335  Localpath : 
+
+
+a local path must began wit weither ./ or ../ t indicate that a local path is intended .
+
+
+
+--------------Terraform Backend 
+ 
+--Backends primarily determine where Terraform stores its state .
+
+-- by deafult,Terraform implcity uses a backend called local to store state as a local file on disk .( eg : .tfstatae files)
+
+-----------challenges with the local backend 
+
+
+336  now a days tf projects is handled and collaborated by an entire team.
+
+337  storing the state file in the local laptop will not allow collaboration
+
+
+338          Ideal Architecture 
+
+
+--- recommended architectures 
+
+
+1 . The teraform Code is stored in "Git Repository "
+
+2 . The state file is stored in a "Central backend" 
+
+
+339 ----------Backend supported in Terraform 
+
+
+340   tf suort multiple backends that allows remote servie related operations .
+
+341 some of the popular backends include : 
+
+
+> S3 
+> Consul
+> Azurem
+> Kubernetes
+> HTTPP
+> ETCD
+
+
+IMP NOTE :  Accesing state in a remote service generaly requires some kind of access credentials 
+
+-- Some backends act like lain " remote disks" for state files; others support locking the state while operations are being performed, which helps prevent conflicts and inconsistencies.
+
+
+
+
+               -----------> store state file   
+ terraform user                                          S3 Bucket
+               <-----------Authenticate first    
+
+
+==============================Implementing S3 Backend 
+
+342 here we are using S3 as a backend 
+
+
+343  here S3 aws is a global service in aws ,
+
+and also ther are some othr global services are there like 
+
+AWS Identity and Access Management (IAM), AWS Organizations, Amazon CloudFront, Amazon Route53, AWS Global Accelerator, AWS Direct Connect, AWS Firewall Manager, AWS Web Application Firewall (WAF), and AWS Shield—may store and process data globally.
+
+
+---open s3 n create new bucket 
+
+-- u can also create sub folder in the bucker like for all c2 resource u can crete sub folder of ec2 
+
+create one folder in vs code 
+
+-one .tf is ec2 resource 
+
+-- one .tf file is for providers 
+
+--one backend.tf file for S3 backend code from terraform registry 
+
+terraform {
+  backend "s3" {
+    bucket = "ur bucket name "
+    key    = "ec2/terraform.tfstate"  ----- which path our tfstate file should stored 
+    region = "ur region"
+  }
+}
+
+
+345 now authenticaton for storing the files and reading the files 
+
+download aws cli and give accesskey n password 
+
+
+--u can get subfolder of s3 in CLI cmd 
+
+
+eg:: aws s3 ls s3://my--backend
+
+
+346  once u create the ec2 , the tf.tfstate file wont appear in the folder 
+
+-- go n check in s3 backend , it wil store there and u can do download the file and check the deatils of ec2 
+
+
+
+
+=======================================State Locking (state file locking)
+
+
+understanding the state Lock 
+
+
+--whenever u are performing write opeation, terraform would lock the state file .
+
+this is very imp as otherwise during ur ongoing tf appy opeations , if others also try for the same ,ir can corrupt ur state file
+
+
+create oe sleep.tf file 
+
+
+resource "time_sleep" "wait_200_seconds" {
+  
+  create_duration = "200s"
+}
+
+
+
+---now do init and apply
+
+
+---then open sme directory in another cmd promt n try to do plan it will throw an error lke 
+
+
+
+ Error acquiring the state lock
+│
+│ Error message: Failed to read state file: The state file could not be
+│ read: read terraform.tfstate: The process cannot access the file because
+│ another process has locked a portion of the file.
+│
+│ Terraform acquires a state lock to protect the state from being written
+│ by multiple users at the same time. Please resolve the issue above and
+│ try
+│ again. For most commands, you can disable locking with the "-lock=false"
+│ flag, but this is not recommended.
+
+QUESTION :  how tf knw another process is going on 
+
+ans : through the file called ".terraform.tfstate.lock.info"
+
+IMP :  state locking hapens autoatically on all oprations that could write state . u wont see any message thta is haening 
+
+-- if state locking fails ,tf will not continue
+
+
+-- not all backends support locking, the documentation for each backend incudes details on whether it suports locking or not .
+
+
+-------------Force Unlocking State 
+
+
+347  tf has a "force-unlock" cmd to manually unlock if unlocing failed 
+
+
+348  if u unlock the state when someone else is holdng it could cause multipe writers.
+
+349  force unlock should only be used to unlock your own lock in the situation where automatic unlocking faield .
+
+
+350  =======================Integrating DynamoDB with S3 for state locking
+
+
+----------state locking in S3 Backend 
+
+
+351 by default, S3 does not suport state locking functionality .
+
+
+352  u ned to make use of "DynamoDB table" to achieve state locking Functionality 
+
+
+353  tf.tfstate files stored in the "S3 Bucket" and state lock files are stored in the "DynamoDb"
+
+356  cerate dynamodb table in aws 
+
+357 the state lock fle will store in ddb table ,once the time is over it will delete the lock-id data , 
+
+
+
+
+358  ====================== Overview of state Modification 
+
+359 as ur tf usage becomes more advanced , there are some cases where u may need to modify the terraform state 
+
+
+360  it is importat to never mdify the state directly , instead make use of "terraform state cmmand"
+
+
+-- there are multiple sub-commands that can be used with terraform state , these include 
+
+> list ----- listresource within tf state file 
+> mv   ----- moves item with tf state 
+> pull ----- manually download and o/p the state from remote state
+> push ----- manually upload a local state file to remte state 
+> rm   ----- Remove items from the tf state 
+> show ----- show the attributes of a single resource in the state
+
+
+
+1. list : tf tate list cmd is used to list resource within a tf state 
+
+2  move : tf state move cmd is used to move items i a tf state .
+
+-- this cmd is used in many cses in which u want to rename an existing resource without destroying and recreating it .
+
+-- due to the destructive nature of this cmnd , this cmnd will o/p a backup copy of the state prior to saving any changes 
+
+
+
+----Overall syntax 
+
+terraform state mv[options] SOURCE DESTINATION 
+
+
+3 Pull : tf statr pull cmnd is used to manually download and output the state from remote state
+
+-- this is useful for reading values out of state 
+
+
+4  Push :  tf state push cmd is used to manually upload a local state file to remote state 
+
+-- we use this rarely 
+
+
+5 Remove :  tf state rm cmnd is used to remove items from the tf state 
+
+-- items removed from the tf state are not physically destroyed 
+
+
+--  items removed from the ts state are only no longer managed by tf 
+
+-- for eg : if u remove an aws instance from the state , the aws instance will continue eunning , but tf plan will nlonger see that instance  
+
+
+6  show : it is used to show the attributes of a single resource in the tf state 
+
+
+================================ Cross- Project Collaboration using Remote State
+
+
+361 basics of tf remote state :
+
+
+-- the teraform_remote_state data source retrieves the root module o/p values from some other tf configuration , using the latest state snapshot from the remote backend.
+
+
+project 1 == public ip's  --------> S3 bucket -----> O/P values ( 172.87.98.5)
+
+project 2 -- s.g  --------- fetch output values and white list from the S3 bucket 
+
+
+
+362  Implementing Remote States Connections
+
+
+-- creaate 2 project folders network and security 
+
+
+-- in network folder -----> eip.tf 
+
+
+resource "aws_eip" "lb" {
+    vpc = true
+}
+
+output "eip_addr" {
+  value = aws_eip.lb.public_ip
+}
+
+
+--providers.tf 
+
+
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+
+
+------backend.tf
+
+
+terraform {
+  backend "s3" {
+    bucket = "subbu-backend"
+    key    = "network/eip.tfstate"
+    region = "ap-south-1"
+  }
+}
+
+once u plan apply , the eipis created project 1 is done , noe coming to  project 2
+
+
+-- what eveer th ip is created should be whitelistedon specific port 
+
+
+
+----sg.tf
+
+resource "aws_security_group" "allow_tls" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = ["${data.terraform_remote_state.eip.outputs.eip_addr}/32"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+}
+
+
+
+---provider.tf 
+
+provider "aws" {
+
+region = "ap-south-1"
+
+}
+
+
+---- you can connect your security group resource to fetch the value, which is the output value from the "eip.tfstate" file that is stored in the S3 bucket.
+
+--- we have to specify the details associated with the S3 bucket within our configuration.
+
+-- so create one file remote-state.tf
+
+
+data "terraform_remote_state" "eip" {
+  backend = "s3"
+
+  config = {
+    bucket = "subbu-backend"
+    key    = "network/eip.tfstate"
+    region = "ap-south-1"
+    }
+  }
+
+
+-- once u do tf plan automatically the ip is fetched
+
+
+once u apply , th s.g will create and automatically fetch data in the source  
+
+
+
+
+==============================================Overview of Terraform Import - NEW
+
+
+363  Typical challenge, 
+
+-- it ca happen that all the resource in an organization are created manually
+
+
+-- orgnizations now wants to start using terraform and manage these resource via terraform
+
+--  Now the question that comes is, since all of the resources have been created manually,
+
+can we bring it under the purview of Terraform, in a way that from now on, all of these resources , whenever there is a modification, etc, needs to be done ,it need to be done tf only 
+
+-----------this is hwere the tf import functionality comes into picture 
+
+
+
+
+-------Earlier Approach 
+
+
+364 in the older version of terraform, tf import would ceate the state file associated with the resource runing in ur environment 
+
+365  users still had to write the tf files from scratch 
+
+
+366   if u 1000's of resources it will becoomehard to write and manage 
+
+
+
+-------------New Approach 
+
+
+367    in the newer aproach , tf import can automatically create the tf configurations files for the rsource u want to import 
+
+
+368 to understand practically , we have ceaate resource manully in the aws console  
+
+-- eg : create one security group 
+
+with 3 inbound rules jst for eg ppurpose 
+
+--- now our aim to import into the tf and manage it in part of tf 
+
+
+-- in order to do that , we have to use the import  block 
+
+
+-- import.tf 
+
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+
+import {
+  to = "aws_security_group.mysg" 
+  id = "sg-093279f2706f6a7df"
+}
+
+---here mysg is to where the code is going to store in .tf file , it is goint to store in mysg.tf once u do apply
+
+
+-- u have configure so 
+
+
+in the terminal u have to nter cmnd like this 
+
+
+
+
+----------------------------------"terraform plan -generate-config-out=mysg.tf"
+
+-- now to get the tfstate.tf file do apply 
+
+
+
+---  u can also do changes in the code ,nce u apply again it will reflect in the aws console 
+
+try to change description in the vs code and do apply n check in aws console 
+
+
+
+
+
+====================================================Security Primer========================
+
+
+369  ==========Terraform Provider UseCase - Resources in Multiple Regions
+
+
+---- single proviser Multiple Configuration 
+
+
+370  till now , we havebeen hardcoding the aws-region parameter within the provier.tf 
+
+
+371  this means that resource would be created in the region specifies in the providers.tf file 
+
+
+372  u can create resource in multiple regions at a time with the use of "alias" 
+
+373  ceate providers.tf file 
+
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+
+provider "aws" {
+    alias = "ohio"
+  region = "us-east-1"
+  
+}
+
+
+374  create resources and use alias 
+
+
+375   resource "aws_instance" "myec2" {
+  ami = "ami-02a2af70a66af6dfb"
+  instance_type = "t2.micro"
+}
+
+
+resource "aws_instance" "myec21" {
+  ami = "ami-02a2af70a66af6dfb"
+  instance_type = "t2.micro"
+  provider = aws.ohio
+}
+
+
+
+
+------------u can alsolaunch resources in differnet account 
+
+
+
+eip.tf
+
+
+
+resource "aws_eip" "myeip" {
+  vpc = "true"
+}
+
+resource "aws_eip" "myeip01" {
+  domain = "vpc"
+  provider = "aws.aws02"
+}
+
+
+
+providers.tf 
+
+
+provider "aws" {
+  region     =  "us-west-1"
+}
+
+provider "aws" {
+  alias      =  "aws02"
+  region     =  "ap-south-1"
+  profile    =  "account02"
+}
+
+
+
+
+============sensitive Parameter 
+
+
+375  overview of sensitive parameter 
+
+
+-- with organizations managing their entire infrastructure in terraform, it is likely that you will see ome snitive informaton embedded in the code 
+
+
+-- when working with a field that contains iformation likely to be considered sensitive , it is best to set the sensitive property on its schema to true 
+
+
+-- setting sensitve to " true" will prevent the field value from showing up in cli o/p and in tf cloud 
+
+-- even if u set sensitive true , it wil not encrypt or obscure the value in the state 
+
+
+
+
+
+locals {
+  db_password = {
+    admin = "password"
+  }
+}
+
+output "db_password" {
+  value = local.db_password
+  sensitive   = true
+}
+
+
+
+do apply 
+
+
+===================================Overview of HashiCorp Vault
+
+
+-- it is to securely store their secrets like tokens, passwords certificates along with a proper access management for protecting secrets
+
+--  one of the common challenges that you would see nowadays in most of the organization is related  to "screct Management"
+
+
+-- so here the secrets can include database passwords, AWS access, secret keys, API tokens, encryption keys and others
+
+
+===================================Terraform and Vault Integration
+
+
+----- Vault provider 
+
+
+-- it allows tf to read from, write to , and configure HashiCorp Vault
+
+
+IMP :  TerraForm causes any secrets that you read and write to be possessed In both the terraform state files
+
+
+============================================Dependency Lock File
+
+
+376  we might have observed that when you run the TerraForm in it, in the folder where the
+103. Dependency Lock File state files are stored, there is also one more file that gets automatically created with the name of "TerraForm.lock.hcl."
+
+377 -----Revising the basics 
+
+
+--- one important part that we need to keep a note of is that the provider plugins and TerraForm are managed independently of each other and they also have a separate release cycle.
+
+
+-------understanding the challenge 
+
+
+-- the aws code written in tf is working perfectly well with AWS plugin v1
+
+
+-- in some cases the latest version of plugins are not supported with tf version in the production envireonment 
+
+
+------------to avoid this we have " Version Dependencies"
+
+-- version constraints within the configurations itself dtermine which versions of dependencies are potentially compatible. 
+
+-- u can also specify specific version in the code itself 
+
+-- after TerraForm , selects a specific version of the dependency TerraForm also remembers that and adds it as part of the log file so that it can use it as default in future , once the file is downloaded the tf will go and add in "TerraForm.lock.hcl."
+
+
+
+---create one .tf file 
+
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "4.60"
+    }
+  }
+}
+
+# Configure the AWS Provider
+provider "aws" {
+  region = "ap-south-1"
+}
+
+
+
+resource "aws_instance" "web" {
+    ami = "ami-02a2af70a66af6dfb"
+
+  instance_type = "t2.micro"
+}
+
+-- we have specifid the version here ,
+
+--now do plan n apply see what are the changes will happen 
+
+-- init , now one lock file is created , if any one download ur code it onlt download the version which u have mnetioned in the code 
+
+------------------- Default behaviour 
+
+
+378  What hapens if you update the tf file with verison that does not match th "tf.lock.hcl?
+
+-- if u change the version in code , n try to init , it will give u error 
+
+
+379 so , to avoid issue , hashicorp recommends that use " -upgrade" option 
+
+
+-----------  "-- terraform init -upgrade "
+
+
+
+----------IMP POINTS 
+
+
+380  when install a specific provider for the first time, TerraForm will also pre-populate the hash value with any checksum that are covered by the provider's developer's cryptographic signature. which usally covers all of the packages for that provider version across all supported platforms 
+
+
+eg : along with the version the hashes are also available in lockfile 
+
+
+
+381   at present the dependency lock file tracks only the provider dependencies.
+
+
+382  It does not remember the version selection for the remote modules, and in such cases, if you have those, then terraform will always select the newest available module version based on the version constraints.
+
+
+
+
+
+==================================================terraform Cloud and Enterprise Capabilities========================================
+
+
+
+
+383  overview of Tf Cloud 
+
+
+-- it manages Terraform Runs in a consistent and reliable environment with various features like access control,private registry for sharing modules, policy controls and others.
+
+
+
+--create ftf cloud account and start from scratch 
+
+
+====================== Creating Infrastructure with Terraform Cloud
+
+-- choose version control overflow for workspace 
+
+-- chose github n cate one repo with private in github ----- terraform-repo
+
+-- create a new file in repo 
+
+
+-- now go to tf cloud and conect with th github 
+
+
+-- ope for pop-up n select the repository , and install
+
+-- create new workspce for this project demo-wrokspce 
+
+-- now u have add accesss key and id of ur aws 
+
+-- go to variables > add vriables > add id and key 
+
+-- once u add go tf operations > c.o new run > select plan and apply 
+
+-- it will show all the details which u will see on cli plan in local system 
+
+
+--  c.o confirm n apply , once the apply is finished go n check in console for ec2 
+
+-- th state file is also generated in the cloud 
+
+-- add slep.tf file in github 
+
+resource "time_sleep" "wait_30_seconds" {
+  create_duration = "30s"
+}
+
+
+-- after ading the .tf file in github, the lanning is getting automatically in the the cloud 
+
+-- plan u have to explicit click on it 
+
+
+----- if u want ot drestroy tf resource 
+
+-- settings > deletion and destructive > queue destroy plan > discard the earlier runs > it starts to destroy > do confirm n apply 
+
+
+================================Sentinel 
+
+--Sentinel is a policy-as-code framework integrated with the HashiCorp enterprise products 
+
+-- it enables fine-graned , logic-based policy decisions , and can be extended to use information rom external soource .
+
+
+-- Note : sentinel policies are paid feature 
+
+
+------High level structure 
+
+
+---------------               ------------              -----------
+policy          ------------> policy sets       --------> workspace
+----------------              -------------             ----------
+   |
+   |
+  block ec2 without tags
+
+
+================================Remote Backends 
+
+
+----  Backend basically stores the Terraform state and may be used to run the operations within the Terraform cloud 
+
+---  important part to remember here is that Terraform Cloud supports multiple type of backend
+
+
+1  Local 
+
+2  Remote 
+
+
+--- tf cloud can also be used with local operations , in which case only state is stored in the tf cloud backend .
+
+-- with the remote operations
+
+-- Which states that when using the remote operation, the operations like "terraform plan" or "terraform apply" can be executed in the Terraform Cloud run environment with the log output streaming in the local terminal 
+
+================================Implementing Remote Backend Operations
+
+
+-- ceatenew workspace in tf cloud , this time we are creating the workspace in the version control workflow 'coz  the Terraform files are coming from the version control provider like GitHub.
+
+-- This time we want the Terraform files to come from our laptop and the "terraform apply", the "terraform destroy"  all the state file storage related operations should be based on the Terraform Cloud.
+
+-- use cli-driven-workflow
+
+-- crete one folder in vs code one .tf file in that folder copy the code from cli-deriven -eorkflow n paste in .tf file 
+
+
+terraform {
+  cloud {
+    organization = "myterraform1-org"
+
+    workspaces {
+      name = "remote-operations"
+    }
+  }
+}
+
+
+-- here are are explicitly given  tf cloud and organization name , so u must do login into the tf cloud through the cli in laptop 
+
+-- now crate .tf file for aws resource 
+
+
+  provider "aws" {
+  region     = "ap-south-1"
+  
+}
+
+resource "aws_iam_user" "lb" {
+  name = "loadbalancer"
+  path = "/system/"
+}
+
+
+open in cli with folder remote 
+
+-- type terraform login > yes > it will open in browser > generate token > copy token and paste in cli value 
+
+-- plan , now it wil show 
+
+Running plan in Terraform Cloud. Output will stream here. Pressing Ctrl-C
+will stop streaming the logs, but will not stop the plan running remotely.
+
+-- once u do apply in cli , in tf cloud it is start the apply 
+
+
+==========================Air Gapped Environments
+
+
+-- undersnding the concept of Air Gap 
+
+-- an Air Gap is a network security measure employed to ensure that the secured computer network is physically isolated from unsecure networks that is public Internet.
+
+
+-- usage f Air Gaped Systems 
+
+--Air Gap environments are generally used in a lot of areas.
+
+> Military, Governmental computer networks or systems, 
+
+> Financial computer systems , such as stock exchanges 
+
+> industrial control systems related to oil and gas fields.
+
+
+---- How does that work or is it really supported at all? without intenrt 
+
+
+ ans: Terraform Enterprise installs using either an online or the air gap method and as the name infer, one requires Internet connectivity and other does not.
+
+
+--air gap based approach is possible using tf enterprise
+
+
+=====================================================================Terraform Challenges ======================================
+
+
+
+=====================================1St challenge : 
+
+
+1. in the given code 
+
+provider "aws" {
+  version = "~> 2.54"
+  region  = "us-east-1"
+  access_key = "AKIAIOSFODNN7EXAMPLE"
+  secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+}
+
+provider "digitalocean" {}
+
+terraform {
+    required_version = "0.12.31"
+}
+
+
+resource "aws_eip" "kplabs_app_ip" {
+  vpc      = true
+}
+
+
+
+-----------it wont suport for the latest version ,so downloaad te appropriate version like "0.12.31" as per requriments 
+
+
+-- to download specific versions , > tf older version download > search for ur version and download 
+
+-- copy the download binary > paste in challenge 1 folder inside 
+
+
+note :  for windows once u want to downalod specific version , u have to type during init 
+
+
+                        terraform.exe init
+
+
+--- now verfify our code is working or not === tf plan --------- working fine 
+
+
+-- with this requrimwnt 1 is success 
+
+
+
+req : 2 verify the code works in the latest version of tf and provider
+
+provider "aws" {
+
+  region = "ap-south-1"
+ 
+}
+
+terraform {
+  required_providers {
+    digitalocean = {
+        source = "digitalocean/digitalocean"
+    }
+  }
+}
+
+
+resource "aws_eip" "kplabs_app_ip" {}
+ domain = "vpc"
+
+
+to work with 2nd,3rd, 4th rquriments we have edit code like above 
+
+
+============================================2nd challenge 
+
+
+requriments : 
+
+
+1 you have to ensure that the code is working and resource get created
+
+2  do not delete the existing terraform.lock.hcl file,However, the file is free to be modified based on requriments 
+
+3 demonstrate the ability to modify a variable of "splunk" from 8088 to 8089 without modifying the Terraform code.
+
+-----Hints:
+
+1 identation
+
+2  values are hard coded ------ use variable.tf and TFVars
+
+3  using tags
+
+4 variable precedence (change without touching code manually)
+
+5  right folder structure 
+
+
+sol :   
+
+
+--- do init , u will get error egress block 
+
+-- add egress part of s.g inside, previously it was outside , now init is working 
+
+-- do tf validate , even thogh ur code is crt but ur getting error 
+
+
+Error: "domain": this field cannot be set
+│
+│   with aws_eip.example,
+│   on tf-challenge-2.tf line 59, in resource "aws_eip" "example":
+│   59: resource "aws_eip" "example" {
+
+
+Note : imp thing is u have to verify 2 things 
+
+1  you are using right version of Terraform binary.
+
+2  whether you are using right version of provider plugins
+
+
+-- here  2.70 plugn installed , why it is downloaded this version 'coz it has lock file presnt in the folder so it considered that version 
+
+
+-- to get the latetst version of plugin 
+
+ans:  do terraform init -upgrade
+
+-- do check in lock file , the version changed , so without doing manually we can do it by cmds 
+
+------------------ now identation 
+
+
+to do in format the code 
+
+
+----  "terraform fmt tf-challenge-2.tf"
+
+----   if u look into code it will get in order 
+
+-----------------now many values are hardcoded so use variables, Vartf
+
+-- create variable.tf file
+
+
+--  variable "HTTPS" {}
+variable "apis" {}
+variable "prod_apis" {}
+variable "dev_vpc" {}
+
+
+-- to store values of variables , create terraform.tfvars
+
+
+HTTPS = "443"
+apis = "8080"
+prod_apis = "8443"
+dev_vpc = "172.31.0.0/16"
+
+--- now apply this variables in the code 
+
+-- move splunk into variables.tf file
+
+--do plan n chec it is working or not
+
+
+------ now tags 
+
+in s.g group and for resource also 
+
+
+
+ tags = {
+    Name = "payment_app"
+    Team = "payments Team"
+  }
+
+
+-- now as per the requriments we have to change splunk without modifying the tf code (in tf file or any other file u do not touch code to change splink value
+
+
+-- so, here "variable Precendence" comes into picture 
+
+
+--  use this wjile doing tf plan to change the variable without modify the actual code 
+
+
+============= terraform plan -var "splunk=8089" 
+
+-- once check in tf plan d the same for apply also 
+
+================ terraform apply -var "splunk=8089" 
+
+
+-- for better reading purpose and easily identification , u should do "description" 
+
+note: if u get error while doing tf apply 
+
+error : duplicate ----------- do tf apply again to solve this error
+
+--- now make it all codes in individual file structure 
+
+
+eg :providers in providers.tf file 
+
+ec2 in ec2.tf file ............etc 
+
+done with 2nd challenge
+
+
+
+==============================================challenge 3
+
+
+-- conditions to meet 
+
+1  based on the values that are specified in the map,EC2 instances should be created accordingly.
+
+2  if key, value is removed from the map, EC2 instance should be destroyed accordingly.
+
+
+----- Hints 
+
+1 
+
+---the requirement indicates that based on the key value pairs that are added the resources should be created and destroyed accordingly.
+
+
+-- in order to achieve this we need to use some kind of loop that can read the key value pairs and create and destroy the resources accordingly.
+
+
+2 use "for_each" for this use case 
+
+
+-- if a resource block includes for each argument whose value is a map or a set,then Terraform creates one instance for each member of that map or set.
+
+
+-----Solution for challenge no.3
+
+-- create one tf file and write aws instance resource code 
+
+
+resource "aws_instance" "terraform" {
+    ami = "ami-02a2af70a66af6dfb"
+    instance_type = "t2.micro"
+}
+
+
+
+imp : use for_each , it only works with either "map" or "set"
+
+
+
+-- providers.tf file 
+
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+----- main.tf 
+
+
+variable "instance_config" {
+  type = map
+  default = {
+    instance1 = { instance_type = "t2.micro", ami = "ami-02a2af70a66af6dfb" }
+    instance2 = { instance_type = "t2.small", ami = "ami-02a2af70a66af6dfb" }
+  }
+}
+
+
+resource "aws_instance" "terraform" {
+  for_each = var.instance_config
+    ami = each.value.ami
+    instance_type = each.value.instance_type
+}
+
+
+
+
+-- nce u do apply it will crate 2 instances 
+
+-- as part of our condition , once u delete the key in the map automatically the resource also get deleted 
+
+--  so add one more instance  n do cmnt 2nd instance 
+
+-- now do plan , it wil try to remove 2nd instance 
+
+-- done with 3rd challenge 
+
+
+
+=================================================challenge 4
+
+
+------------------------ requiremnt 1
+
+-- you have a client that wants a Terraform code that can create a set of AWS users with the following syntax
+
+-- syntax is     admin-user-{account-number-of-aws}
+
+-- two aws accnts are there , so  if you're running Terraform code in two accounts,it should create a AWS user with the name of admin-user-12345 in account one and admin-user-67890 in account two.
+
+
+-------------------requiremnt 2
+
+
+-- it also wants to have a logic that can show all the names of all the users that are part of the AWS account.
+
+-- For example, let's assume that there are four or five users. Then as part of the output,
+
+the Terraform should show list of all the users that are currently created.
+
+
+
+-------------------requiremnt 3
+
+
+--  along with the name of the users that should be displayed, Terraform should also calculate the total number.
+
+-- For example, let's say that there are 200 users.Now in the requirement number two,Terraform will display all 200 users, but from there we cannot identify how many total users are there from numeric value. so
+
+
+-- client wants a numeric value. For example, there are 150 users or 200 users, etc.
+
+
+
+--------------------------Hints 
+
+
+hint 1 : Data Source 
+
+-- it is very imp if you want to solve this use case in a dynamic fashionso that your code works without hard coding any values.
+
+
+-- data sources allows us to dynamically fetch the information from the infrastructure resource, or even other state backends.
+
+
+-- here we want to fetch the value from the infrastructure resource,
+
+-- u can try to  dynamically fetch information like AWS account ID, using the "data Sources"
+
+
+---- Hint 2 : using the terraform functions 
+
+
+--- to calculate the number of users is outside the scope of data source.
+
+-- So for example, data source can fetch the list of usernames that are created in AWS.But if you want to convert that list into a numeric value like 150,200 etc is something that data source directly does not do.So you'll have to make use of the appropriate terraform function that can calculate the total number of users and add it as part of the output.
+
+
+
+
+---------------------Solution for challenge 4 
+
+-- first we implement  condition 2 then 3 , then 1 
+
+-- go to aws console n create users 2 or 3 users 
+
+-- for req 2 : we want to fetch certain information from our AWS account. We want to fetch the IAM users.
+
+-- in tf registry u can do serach for iam , it will show u resource and datat source portions 
+
+-- in data source sections , go to aws_iam_users (if u want to ftch data ) go for data source portion 
+
+
+--  open folder n create main.tf file in vs code within that add data source for iam users 
+
+eg : 
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+
+
+data "aws_iam_users" "users" {}
+
+
+output "user_names" {
+  value = data.aws_iam_users.users.names  --- to get the list of user names in aws account 
+}
+
+
+-- here "names" is attribute 
+
+
+-- once u do tf plan it wil show you the list of users 
+
+
+eg :  
+
+
+ + user_names = [
+      + "dharma",
+      + "sathya",
+      + "terraform",
+    ]
+
+
+
+---- when u do tf appply allof the info will get store as part of the state file and any other code can reference to our state file to fetch the information.
+
+-- req is done 
+
+
+
+-- now calculate how many number of users in total 
+
+-- add one more o/p block for total no.of users 
+
+-- so here frist fecth the values should be hapen and then calculate the total numeric value of users in aws account 
+
+-- in tf registry open tf function > collection function > length function 
+
+"length function " :  it determines the length of a given list,map, or a string 
+
+
+eg : 
+
+
+output "total_user" {
+  value = length(data.aws_iam_users.users.names)
+}
+
+-- now do tf plan it will show u no.. of users 
+
+
+-- u have to "apply" to get commited the value in the state file 
+
+eg : 
+
+
+total_user = 3
+user_names = toset([
+  "dharma",
+  "sathya",
+  "terraform",
+])
+
+-- done with 3rd req 
+
+
+
+---- for 1st req 
+
+-- there is one more requirement which states that the user should be created with the syntax of admin-user- the account number.
+
+-- each aws has a accnt number , u have to fetech this accnt id dynamicaaly using data source 
+
+-- tf data source account id in google 
+
+-- go for " aws_caller_identity"
+
+add resource for creating iam user in the required formate 
+
+eg : 
+
+data "aws_caller_identity" "current" {}
+resource "aws_iam_user" "lb" {
+  name = "admin-user-${data.aws_caller_identity.current.account_id}"
+  path = "/system/"
+}
+
+-- ${data.aws_caller_identity.current.account_id} ---- interpolation for the account_id 
+
+
+-- this aws_caller_identity function is do multiple fetch like account id, usr id .. so do interpolation as u want 
+
+
+-- do tf plan and apply 
+
+
+
+ # aws_iam_user.lb will be created
+  + resource "aws_iam_user" "lb" {
+      + arn           = (known after apply)
+      + force_destroy = false
+      + id            = (known after apply)
+      + name          = "admin-user-298132369629"  -----in te desired state it is creating
+      + path          = "/system/"
+      + tags_all      = (known after apply)
+      + unique_id     = (known after apply)
+    }
+
+
+
+-- also check in aws console 
+
+
+------------total code 
+
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+
+
+data "aws_iam_users" "users" {}
+
+data "aws_caller_identity" "current" {}
+
+resource "aws_iam_user" "lb" {
+  name = "admin-user-${data.aws_caller_identity.current.account_id}"
+  path = "/system/"
+}
+
+
+output "user_names" {
+  value = data.aws_iam_users.users.names
+}
+
+
+output "total_user" {
+  value = length(data.aws_iam_users.users.names)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+       
+
+
+
+
+
+
+
+
+
+
