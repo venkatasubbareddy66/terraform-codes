@@ -2938,13 +2938,19 @@ module "sgmodule" {
 
 variable "app_port" {
     default = "8443"
-  
+  var.app_port = "22"
 }
 
 
 -- if u wnat to change the value , u can change here it wil aply to all
 
 -- here th problem is if anyone override the ort number it will take that port number in the plan stage , so we dont want to edit any one accidentally 
+
+eg :  module "sgmodule" {
+  source = "../../modules/sg"
+  
+}
+
 
 
 now open foler > projcts > B > tf init in terminal 
