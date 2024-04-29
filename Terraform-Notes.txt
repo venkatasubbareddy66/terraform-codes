@@ -1245,6 +1245,7 @@ output "timestamp" {
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8qO8KcNnKUm04ZC7H5s0WyJwpo/bxG/kJovGUqSz6ViEAhVxC9Tq/piJ9Kk9IUEOkfAjY8Yr5zn9ThRbOVJ4AEHTjSwIie7YMMLjN+OdTn8+cqnfh9RNN3633ixGVP9CpbiDiB7gMsZ78Q2ps/gcxQuuW1XSt8Y0jcgHL0KJQsjU0eS7vhGCjRQ9snrgJxYg+UYM8dOWINhbiVTQbydHGjcYUMZv6cWxZDQPyejObcFsmDY7UcD4ZnuzG/1VaSh+fXjNzqK6TjoY7ajH3F6WVW1Nbh6F/4hJipmT4Q5TxK51s28PCYveWZypc66PTw2D1WHerCXQbuSnMlqpwip/f root@46400bafe371
 
 
+-- after do tf apply if u get keypair already exists , then u can change the name of key-pair and proceed
 
 
 
@@ -4120,6 +4121,189 @@ will stop streaming the logs, but will not stop the plan running remotely.
 
 
 --air gap based approach is possible using tf enterprise
+
+
+
+
+
+
+
+================================================================== AWS SSM Patch Manager =============================
+
+
+SSM system manager Patch Manager Use Cases :
+
+
+
+-- you might have multiple environment with 10+ ec2 instances maybe you are managing Dev server , Prod , test
+
+-- manual patching is not a scalable solution moreover if you are not keeping your servers updated you are inviting other vulnerabilities 
+
+-- that is why it's most important to keep our servers updated with the latest operating system and security patches
+
+-- you may be working in hybrid Cloud environment now as you know hybrid Cloud environment means you have some workload in AWS Cloud as well as you have some workload in your on-premise data centers or even you are working with other Cloud
+
+-- Diversified version of operating systems (Windows,Linux/unix)
+
+-- requriment of uniform patching process across environments 
+
+
+
+
+----------------------------------- Supported environments that SSM patch manager currently supports
+
+
+-- Ec2 instances in AWS CLoud 
+
+-- on-premise Servers 
+
+-- Edge devices includes ( AWS iot device also non-aws iot devices)
+
+-- VM in other cloud providers
+
+
+NOTE : you have to remember Mac OS is not supported for systems manager , hybrid environment if you have a Mac OS in your on-premise data center 
+
+-- then you won't be able to manage Mac OS in on-premise data center using AWS systems managers 
+
+
+
+
+
+-------------------------------- AWS SSM Prerequisites 
+
+
+-- You need AWS systems manager agent in ec2 and in Virtual machines 
+
+-- recently there are many AWS Amis which comes with pre-installed SSM agent if you are using any of the latest Ami in most of the cases you should have SSM agent pre-installed
+
+-- u need IAM Role / EC2 instance Profile or non-admin user with required privileges
+
+-- ec2 instance should allow outbound connection to SSM 
+
+
+
+
+-------------------------------- Patching process using AWS System Manager
+
+
+1 Patch Baseline : 
+
+     - patch Baseline is based on your operating system based on your what type of patches you want is that operating system patches is that a security patches or is that an application patch
+
+     - obviously do you want to apply in a development region or in a production region based on that you will be able to configure the patch Baseline 
+
+     - once you have the patch Baseline configured next is you have to identify the targets 
+
+
+2 Targets :
+
+     - you want to apply the patches as soon as that is available for development region  
+
+     - but for production you might have to test that in development and test region then only you are going to apply the patch into production region
+
+     - that is why you have to create separate Target groups for those patches 
+
+     - you might be able to apply the same patches into multiple Target groups
+
+     - but please remember that we should create different patch groups and based on the instances in the patch group you can automate the process 
+
+
+3 Maintenance Window :
+
+     - what is maintenance window?
+
+     - you maybe for development region you can apply the patches as soon as that is available 
+     
+     - if the development region will go down that may hamper your productivity
+
+     - but it's not going to affect the business users or your customers
+
+     - but for production you might want to apply the patches in a time where the application has a least amount of traffic that is why we will create maintenance window
+
+     - and will apply the patches based on the required time or based on the designated time .
+
+     - when the production application can go down and it will affect less number of production users or end users
+
+
+
+4 Tasks :
+
+     - we have to create the task  
+
+     - the task would be you can create do you want to scan or do you want to apply or do you want to do both together so based on that we can create Tasks
+
+     - so based on that we can create the task we can select the maintenance window and 
+
+     - we can select the patch Baseline and we can select the patch group
+
+     - based on your task definition and based on the maintenance Windows scheduled AWS run patch Baseline will invoke the AWS systems manager.
+
+     - systems manager will trigger the process and it will apply the patches to the required Target
+
+
+
+
+
+----------------------------------- Hands on
+
+STEP : 1  : create patch BaseLine
+
+
+
+-- create 4 ec2 linux instances 
+
+-- now give tags for 1st 2 instances Environment = DEV and Environamnet = PROD for other 2 instances 
+
+-- open SSM --> left navigation panel --> patch manager --> c.o Start with an overview ---> patch baselines --> c.o create patch baselines
+
+-- now I am creating for Linux OS patching baselines but applyling patches for only Linux
+
+      - you might create a separate patch Baseline for operating system
+
+      - you can create a separate patch Baseline for the applications in the OS
+
+      - name for linux
+      
+      - Operating system = amazon Linuz 2
+
+      - Products = select any versions u want to apply patches 
+
+      - Classification = select type of patches as u want like CriticalUpdates , Drivers , FeaturePacks ...... these are all necessary for any development and production servers
+
+      - Auto-approval = Auto approval rule you can set the rule whenever the upgrade or whenever there is a update in a software do you want to install as early as possible or not 
+
+      - Severity = critical , moderate .. as u want
+
+      - Patch exceptions = if you know there are some patches that is faulty or maybe that patch is not fixing the issue in that case you can create an exception
+
+            - if you put those patch names then those patches will not be applied and it will be excluded
+
+      - create patch baseline 
+
+
+
+STEP 2 : creating Patching 
+
+-- now once u create base patchline , u have to click on patch now 
+
+-- choose scan or scan and install
+
+-- Reboot option = Reboot if needed
+
+-- Instances to patch = xhoose Tags ---> Environment  = DEV
+
+-- patch Now , wait until it get result --> c.o associate ID  --> see the o/p
+
+
+
+-- to create using terraform , see in terraform codes 
+
+
+
+
+
+
 
 
 =====================================================================Terraform Challenges ======================================
